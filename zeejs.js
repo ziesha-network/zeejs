@@ -93,6 +93,19 @@ Point.prototype.add = function(other) {
   );
 }
 
+Point.prototype.mul = function(scalar) {
+  let result = Point.zero();
+  let init = new Point(this.x, this.y, this.z);
+  let bits = scalar.toString(2);
+  for (var i = 0; i < bits.length; i++) {
+    result = result.double();
+    if(bits.charAt(i) == "1") {
+      result = result.add(init);
+    }
+  }
+  return result;
+}
+
 Point.prototype.double = function(other) {
   if(this.isZero()) {
       return Point.zero();
@@ -119,3 +132,5 @@ let dbl_base = BASE.add(BASE);
 let a = dbl_base.add(BASE);
 let b = BASE.add(dbl_base);
 alert(a.equals(b));
+alert(BASE.mul(3).equals(a));
+alert(BASE.mul(3).equals(b));
