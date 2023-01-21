@@ -8,6 +8,36 @@ Field.prototype.isZero = function() {
   return this.value == BigInt(0);
 }
 
+function egcd(a, b) {
+  if (a == 0) {
+    return [b, BigInt(0), BigInt(1)];
+  }
+  else {
+    let [g, y, x] = egcd(b % a, a)
+    return [g, x - (b / a) * y, y]
+  }
+}
+
+Field.prototype.invert = function() {
+  let [g, x, y] = egcd(BigInt(this.value), BigInt(MODULUS));
+  if (g != 1) {
+    throw new Error('modular inverse does not exist')
+  }
+  else {
+    return new Field(x % MODULUS);
+  }
+}
+
+Field.prototype.bytes = function() {
+  var value = BigInt(this.value);
+  var bytes = [];
+  for (i = 0; i < 32; i++) {
+    bytes.push(Number(value % BigInt(256)));
+    value = value / BigInt(256);
+  }
+  return bytes;
+}
+
 Field.prototype.equals = function(other) {
   return this.value == other.value;
 }
@@ -63,6 +93,11 @@ Point.prototype.isZero = function() {
   return this.z.isZero();
 }
 
+Point.prototype.affine = function() {
+  let z_inv = this.z.invert();
+  return new Point(this.x.mul(z_inv), this.y.mul(z_inv), new Field(1));
+}
+
 Point.prototype.equals = function(other) {
   return (
     (this.x * other.z == other.x * this.z) &&
@@ -94,9 +129,9 @@ Point.prototype.add = function(other) {
 }
 
 Point.prototype.mul = function(scalar) {
-  let result = Point.zero();
+  var result = Point.zero();
   let init = new Point(this.x, this.y, this.z);
-  let bits = scalar.toString(2);
+  let bits = scalar.value.toString(2);
   for (var i = 0; i < bits.length; i++) {
     result = result.double();
     if(bits.charAt(i) == "1") {
@@ -128,9 +163,32 @@ Point.zero = function() {
   return new Point(new Field(0), new Field(1), new Field(0));
 }
 
-let dbl_base = BASE.add(BASE);
-let a = dbl_base.add(BASE);
-let b = BASE.add(dbl_base);
+/*let dbl_base = BASE.add(BASE);
+let a = dbl_base.add(BASE).double();
+let b = BASE.add(dbl_base).double();
 alert(a.equals(b));
-alert(BASE.mul(3).equals(a));
-alert(BASE.mul(3).equals(b));
+alert(BASE.mul(new Field(6)).equals(a));*/
+
+function PublicKey(point) {
+  this.point = point.affine();
+}
+
+PublicKey.prototype.toString = function() {
+  let is_odd = this.point.y.value % BigInt(2) == 1;
+  return this.point.x.value.toString(16);
+}
+
+function sha3(inp) {
+  let output = sha3_256(inp);
+  let rev_output = output.match(/[a-fA-F0-9]{2}/g).reverse().join('');
+  return new Field(BigInt('0x' + rev_output));
+}
+
+function PrivateKey(seed) {
+  this.randomness = sha3(seed);
+  this.scalar = sha3(this.randomness.bytes());
+  this.pub_key = new PublicKey(BASE.mul(this.scalar));
+}
+
+let sk = new PrivateKey([104, 101, 108, 108, 111]);
+alert(sk.pub_key.toString());
