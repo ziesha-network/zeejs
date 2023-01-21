@@ -9,6 +9,21 @@ PublicKey.prototype.toString = function() {
   return addr;
 }
 
+PublicKey.fromString = function(s) {
+  if(s.length != 66 || s[0] != "z" || (s[1] != "2" && s[1] != "3")) {
+    throw Error("Invalid mpn address!");
+  }
+  let is_odd = s[1] == "3";
+  let x = new Field('0x' + s.slice(2));
+  var y = (new Field(1)).sub(D.mul(x.mul(x))).invert().mul((new Field(1).sub(A.mul(x).mul(x))));
+  y = y.mul(y);
+  let y_is_odd = y.value % BigInt(2) == 1;
+  if(y_is_odd != is_odd) {
+      y = y.neg();
+  }
+  return new PublicKey(new Point(x, y));
+}
+
 function sha3(inp) {
   let output = sha3_256(inp);
   let rev_output = output.match(/[a-fA-F0-9]{2}/g).reverse().join('');
@@ -58,6 +73,27 @@ PublicKey.prototype.verify = function(msg, sig) {
   return r_plus_ha.equals(sb);
 }
 
-let sk = new PrivateKey([104, 101, 108, 108, 111]);
-let sig = sk.sign(new Field(123));
-alert(sk.pub_key.verify(new Field(123), sig));
+PrivateKey.prototype.create_tx = function(nonce, to, amount, fee) {
+  let tx_hash = poseidon7(
+    new Field(nonce),
+    to.point.x,
+    to.point.y,
+    new Field(1),
+    new Field(amount),
+    new Field(1),
+    new Field(fee)
+  );
+  let sig = this.sign(tx_hash);
+  return {
+    "sig": sig.value.toString(16)
+  };
+}
+
+
+function send(event) {
+  event.preventDefault();
+  let sk = new PrivateKey([104, 101, 108, 108, 111]);
+  alert(sk.pub_key);
+  alert(PublicKey.fromString(sk.pub_key.toString()));
+}
+//sk.create_tx(0, )
