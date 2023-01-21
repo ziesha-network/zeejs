@@ -74,3 +74,21 @@ function poseidon5(a, b, c, d, e) {
   }
   return elems[1];
 }
+
+function poseidon7(a, b, c, d, e, f, g) {
+  var elems = [new Field(0), a, b, c, d, e, f, g];
+  var offset = 0;
+  for(var i=0;i<POSEIDON7_R_F/2;i++) {
+    full_round(elems, POSEIDON7_ROUNDS, POSEIDON7_MDS, offset);
+    offset += elems.length;
+  }
+  for(var i=0;i<POSEIDON7_R_P;i++) {
+    partial_round(elems, POSEIDON7_ROUNDS, POSEIDON7_MDS, offset);
+    offset += elems.length;
+  }
+  for(var i=0;i<POSEIDON7_R_F/2;i++) {
+    full_round(elems, POSEIDON7_ROUNDS, POSEIDON7_MDS, offset);
+    offset += elems.length;
+  }
+  return elems[1];
+}
