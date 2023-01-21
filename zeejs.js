@@ -93,6 +93,12 @@ Point.prototype.isZero = function() {
   return this.z.isZero();
 }
 
+Point.prototype.isOnCurve = function() {
+  let lhs = this.y.mul(this.y).sub(this.x.mul(this.x));
+  let rhs = D.mul(this.x).mul(this.x).mul(this.y).mul(this.y).add(new Field(1));
+  return lhs.value == rhs.value;
+}
+
 Point.prototype.affine = function() {
   let z_inv = this.z.invert();
   return new Point(this.x.mul(z_inv), this.y.mul(z_inv), new Field(1));
@@ -100,8 +106,8 @@ Point.prototype.affine = function() {
 
 Point.prototype.equals = function(other) {
   return (
-    (this.x * other.z == other.x * this.z) &&
-    (this.y * other.z == other.y * this.z)
+    this.x.mul(other.z).equals(other.x.mul(this.z)) &&
+    this.y.mul(other.z).equals(other.y.mul(this.z))
   );
 }
 
@@ -168,27 +174,3 @@ let a = dbl_base.add(BASE).double();
 let b = BASE.add(dbl_base).double();
 alert(a.equals(b));
 alert(BASE.mul(new Field(6)).equals(a));*/
-
-function PublicKey(point) {
-  this.point = point.affine();
-}
-
-PublicKey.prototype.toString = function() {
-  let is_odd = this.point.y.value % BigInt(2) == 1;
-  return this.point.x.value.toString(16);
-}
-
-function sha3(inp) {
-  let output = sha3_256(inp);
-  let rev_output = output.match(/[a-fA-F0-9]{2}/g).reverse().join('');
-  return new Field(BigInt('0x' + rev_output));
-}
-
-function PrivateKey(seed) {
-  this.randomness = sha3(seed);
-  this.scalar = sha3(this.randomness.bytes());
-  this.pub_key = new PublicKey(BASE.mul(this.scalar));
-}
-
-let sk = new PrivateKey([104, 101, 108, 108, 111]);
-alert(sk.pub_key.toString());
