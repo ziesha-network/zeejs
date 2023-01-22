@@ -10,6 +10,8 @@
 </head>
 
 <body>
+  <div id="content">
+  </div>
   <script src="zeejs.js"></script>
   <script src="poseidon2_const.js"></script>
   <script src="poseidon5_const.js"></script>
@@ -17,14 +19,5 @@
   <script src="poseidon.js"></script>
   <script src="bip39.js"></script>
   <script src="wallet.js"></script>
-  <form onsubmit="send(event)">
-    <div><label>Seed: </label><input type="text" name="seed"/></div>
-    <div><label>Nonce: </label><input type="number" name="nonce"/></div>
-    <div><label>To: </label><input type="text" name="to"/></div>
-    <div><label>Amount: </label><input type="number" name="amount"/></div>
-    <div><label>Fee: </label><input type="number" name="fee"/></div>
-    <div><button>Send!</button></div>
-  </form>
-  <p id="msg"></p>
 </body>
 </html>

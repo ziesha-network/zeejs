@@ -16,7 +16,7 @@ PublicKey.fromString = function(s) {
   let is_odd = s[1] == "3";
   let x = new Field('0x' + s.slice(2));
   var y = (new Field(1)).sub(D.mul(x.mul(x))).invert().mul((new Field(1).sub(A.mul(x).mul(x))));
-  y = y.mul(y);
+  y = y.sqrt();
   let y_is_odd = y.value % BigInt(2) == 1;
   if(y_is_odd != is_odd) {
       y = y.neg();
@@ -58,6 +58,10 @@ PrivateKey.prototype.sign = function(msg) {
   return new Signature(rr, s);
 }
 
+PublicKey.prototype.mpn_account_index = function() {
+  return Number(this.point.x.value & BigInt(0x3fffffff));
+}
+
 PublicKey.prototype.verify = function(msg, sig) {
   if(!this.point.isOnCurve() || !sig.r.isOnCurve()) {
     return false;
@@ -83,17 +87,108 @@ PrivateKey.prototype.create_tx = function(nonce, to, amount, fee) {
     new Field(1),
     new Field(fee)
   );
+  alert(tx_hash.value.toString(16));
   let sig = this.sign(tx_hash);
   return {
-    "sig": sig.value.toString(16)
+    "s":sig.s.montgomery().value.toString(16),
+    "rx":sig.r.x.montgomery().value.toString(16),
+    "ry":sig.r.y.montgomery().value.toString(16),
+    "rz":sig.r.z.montgomery().value.toString(16),
+  }
+  return {
+    "nonce": nonce,
+    "src_pub_key": this.pub_key.toString(),
+    "dst_pub_key": to.toString(),
+    "src_token_index": 0,
+    "src_fee_token_index": 0,
+    "dst_token_index": 0,
+    "amount_token_id" :"Ziesha",
+    "fee_token_id" :"Ziesha",
+    "amount": amount,
+    "fee": fee,
+    "sig": ""
   };
 }
 
+var STATE = {sk: null, account: null};
+let NODE = "65.108.193.133:8765";
+let NETWORK = 'chay-4';
 
-function send(event) {
-  event.preventDefault();
-  let sk = new PrivateKey(toSeed("excuse wet tackle scan spy visual shrug often shell level blame bring"));
-  alert(sk.pub_key);
-  alert(PublicKey.fromString(sk.pub_key.toString()));
+async function getAccount(pub_key) {
+  return fetch('http://' + NODE + '/mpn/account?index=' + pub_key.mpn_account_index(), {
+      method: 'GET',
+      headers: {
+          'X-ZIESHA-NETWORK-NAME': NETWORK,
+          'Accept': 'application/json'
+      },
+  })
+  .then(response => response.json());
 }
-//sk.create_tx(0, )
+
+async function sendTx(tx) {
+  alert(JSON.stringify({tx: tx}))
+  return fetch('http://' + NODE + '/transact/zero', {
+      method: 'POST',
+      headers: {
+          'X-ZIESHA-NETWORK-NAME': NETWORK,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+      },
+      body: JSON.stringify({tx: tx})
+  })
+  .then(response => response.json());
+}
+
+function render() {
+  if(STATE.sk === null) {
+    document.getElementById("content").innerHTML = `
+      <form onsubmit="login(event)">
+        <div><label>Mnemonic: </label><input id="mnemonic" type="text" name="mnemonic"/></div>
+        <div><button>Login!</button></div>
+      </form>
+      `;
+  }
+  else {
+    let html = "";
+    if(STATE.account !== null) {
+      html += '<p><b>Address:</b> ' + STATE.sk.pub_key + "</p>";
+      html += '<p><b>Nonce:</b> ' + STATE.account.nonce + "</p>";
+      if(STATE.account.tokens.length > 0 && STATE.account.tokens[0].token_id == "Ziesha") {
+        html += '<p><b>Balance:</b> ' + STATE.account.tokens[0].amount / 1000000000 + "ℤ</p>";
+      }
+    }
+    html += `
+    <form onsubmit="send(event)">
+      <div><label>Nonce: </label><input type="number" name="nonce"/></div>
+      <div><label>To: </label><input type="text" name="to"/></div>
+      <div><label>Amount: </label><input type="number" name="amount"/></div>
+      <div><label>Fee: </label><input type="number" name="fee"/></div>
+      <div><button>Send!</button></div>
+    </form>
+      `;
+      document.getElementById("content").innerHTML = html;
+  }
+}
+
+async function login(event) {
+  event.preventDefault();
+  let mnemonic = document.getElementById("mnemonic").value;
+  STATE.sk = new PrivateKey(toSeed(mnemonic));
+  STATE.account = (await getAccount(STATE.sk.pub_key)).account;
+  render();
+}
+
+async function logout(event) {
+  event.preventDefault();
+  STATE.sk = null;
+  render();
+}
+
+async function send(event) {
+  event.preventDefault();
+  let tx = STATE.sk.create_tx(0, PublicKey.fromString("z2314e428356bdc7cf43f02c42d1f8ce0bd10a6cd692d93d61fb040044d7a4d242"), 1000000000, 0);
+  await sendTx(tx);
+  alert(tx);
+}
+
+render();

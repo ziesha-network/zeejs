@@ -1,4 +1,6 @@
 const MODULUS = BigInt("52435875175126190479447740508185965837690552500527637822603658699938581184513");
+const MODULUS_R = BigInt("41515536288062376014772236515869989659801672835942349428353392091902613913603");
+const MODULUS_R2 = BigInt("3294906474794265442129797520630710739278575682199800681788903916070560242797");
 
 function Field(val) {
   this.value = ((BigInt(val) % MODULUS) + MODULUS) % MODULUS;
@@ -66,8 +68,76 @@ Field.prototype.mul = function(other) {
   return new Field(this.value * other.value);
 }
 
+Field.prototype.pow = function(other) {
+  var result = new Field(1);
+  let init = new Field(this.value);
+  let bits = other.toString(2);
+  for (var i = 0; i < bits.length; i++) {
+    result = result.mul(result);
+    if(bits.charAt(i) == "1") {
+      result = result.mul(init);
+    }
+  }
+  return result;
+}
+
 Field.prototype.toString = function() {
   return this.value.toString();
+}
+
+Field.prototype.legendreSymbol = function() {
+  let ls = this.pow((MODULUS - BigInt(1)) / BigInt(2))
+  if(ls.value == MODULUS - BigInt(1)) {
+    return BigInt(-1);
+  } else {
+    return ls.value;
+  }
+}
+
+Field.prototype.sqrt = function() {
+  if(this.legendreSymbol() != 1 || this.value == 0) {
+    throw new Error("Square-root doesn't exist!");
+  }
+  var s = MODULUS - BigInt(1)
+  var e = BigInt(0)
+  while(s % BigInt(2) == 0) {
+    s /= BigInt(2);
+    e += BigInt(1);
+  }
+  var n = new Field(2);
+  while(n.legendreSymbol() != -1) {
+    n = n.add(new Field(1));
+  }
+
+  var x = this.pow((s + BigInt(1)) / BigInt(2)).value;
+  var b = this.pow(s).value;
+  var g = n.pow(s).value;
+  var r = BigInt(e);
+
+  while(true){
+    t = b;
+    for(m=BigInt(0);m<r;m++) {
+      if(t == 1)
+        break;
+      t = (t * t) % MODULUS;
+    }
+
+    if(m == 0) {
+      return new Field(x);
+    }
+
+    var gs = (new Field(g)).pow(BigInt(2) ** (r - m - BigInt(1))).value;
+    g = (gs * gs) % MODULUS
+    x = (x * gs) % MODULUS
+    b = (b * g) % MODULUS
+    r = m;
+  }
+  return new Field(n);
+}
+
+
+Field.prototype.montgomery = function() {
+  return new Field(this.value * MODULUS_R);
 }
 
 function Point(x, y, z) {
