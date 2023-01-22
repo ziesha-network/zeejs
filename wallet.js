@@ -35,6 +35,15 @@ function Signature(r, s) {
   this.s = s;
 }
 
+Signature.prototype.hex = function() {
+  function ser(f) {
+    var hex = f.montgomery().value.toString(16);
+    hex = "0".repeat(64 - hex.length) + hex;
+    return hex.match(/[a-fA-F0-9]{2}/g).reverse().join('');
+  }
+  return ser(this.r.x) + ser(this.r.y) + ser(this.s);
+}
+
 function PrivateKey(seed) {
   this.randomness = sha3(seed);
   this.scalar = sha3(this.randomness.bytes());
@@ -87,14 +96,7 @@ PrivateKey.prototype.create_tx = function(nonce, to, amount, fee) {
     new Field(1),
     new Field(fee)
   );
-  alert(tx_hash.value.toString(16));
   let sig = this.sign(tx_hash);
-  return {
-    "s":sig.s.montgomery().value.toString(16),
-    "rx":sig.r.x.montgomery().value.toString(16),
-    "ry":sig.r.y.montgomery().value.toString(16),
-    "rz":sig.r.z.montgomery().value.toString(16),
-  }
   return {
     "nonce": nonce,
     "src_pub_key": this.pub_key.toString(),
@@ -106,7 +108,7 @@ PrivateKey.prototype.create_tx = function(nonce, to, amount, fee) {
     "fee_token_id" :"Ziesha",
     "amount": amount,
     "fee": fee,
-    "sig": ""
+    "sig": sig.hex()
   };
 }
 
@@ -126,7 +128,6 @@ async function getAccount(pub_key) {
 }
 
 async function sendTx(tx) {
-  alert(JSON.stringify({tx: tx}))
   return fetch('http://' + NODE + '/transact/zero', {
       method: 'POST',
       headers: {
@@ -188,7 +189,6 @@ async function send(event) {
   event.preventDefault();
   let tx = STATE.sk.create_tx(0, PublicKey.fromString("z2314e428356bdc7cf43f02c42d1f8ce0bd10a6cd692d93d61fb040044d7a4d242"), 1000000000, 0);
   await sendTx(tx);
-  alert(tx);
 }
 
 render();
