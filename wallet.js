@@ -92,7 +92,7 @@ PrivateKey.prototype.create_tx = function(nonce, to, amount, fee) {
 
 function send(event) {
   event.preventDefault();
-  let sk = new PrivateKey([104, 101, 108, 108, 111]);
+  let sk = new PrivateKey(toSeed("excuse wet tackle scan spy visual shrug often shell level blame bring"));
   alert(sk.pub_key);
   alert(PublicKey.fromString(sk.pub_key.toString()));
 }

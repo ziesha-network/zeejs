@@ -2049,45 +2049,29 @@ BIP39_WORDS = [
     "zoo"
 ];
 
-/*def to_entropy(self, words: Union[List[str], str]) -> bytearray:
-      if not isinstance(words, list):
-          words = words.split(" ")
-      if len(words) not in [12, 15, 18, 21, 24]:
-          raise ValueError(
-              "Number of words must be one of the following: [12, 15, 18, 21, 24], but it is not (%d)."
-              % len(words)
-          )
-      # Look up all the words in the list and construct the
-      # concatenation of the original entropy and the checksum.
-      concatLenBits = len(words) * 11
-      concatBits = [False] * concatLenBits
-      wordindex = 0
-      for word in words:
-          # Find the words index in the wordlist
-          ndx = self.wordlist.index(word)
-          if ndx < 0:
-              raise LookupError('Unable to find "%s" in word list.' % word)
-          # Set the next 11 bits to the value of the index.
-          for ii in range(11):
-              concatBits[(wordindex * 11) + ii] = (ndx & (1 << (10 - ii))) != 0
-          wordindex += 1
-      checksumLengthBits = concatLenBits // 33
-      entropyLengthBits = concatLenBits - checksumLengthBits
-      # Extract original entropy as bytes.
-      entropy = bytearray(entropyLengthBits // 8)
-      for ii in range(len(entropy)):
-          for jj in range(8):
-              if concatBits[(ii * 8) + jj]:
-                  entropy[ii] |= 1 << (7 - jj)
-      # Take the digest of the entropy.
-      hashBytes = hashlib.sha256(entropy).digest()
-      hashBits = list(
-          itertools.chain.from_iterable(
-              [c & (1 << (7 - i)) != 0 for i in range(8)] for c in hashBytes
-          )
-      )
-      # Check all the checksum bits.
-      for i in range(checksumLengthBits):
-          if concatBits[entropyLengthBits + i] != hashBits[i]:
-              raise ValueError("Failed checksum.")
-      return entropy*/
+function toEntropy(words) {
+  var binary = "";
+  for(var i=0;i<12;i++) {
+    var indOf = BIP39_WORDS.indexOf(words[i]);
+    if(indOf == -1) {
+      throw new Error("Wrong word '" + words[i] + "' in the mnemonic phrase!");
+    }
+    var bin = indOf.toString(2);
+    bin = "0".repeat(11 - bin.length) + bin;
+    binary += bin;
+  }
+  let entropy = binary.slice(0, 128);
+  let checksum = binary.slice(128);
+  // TODO: Check checksum is correct!
+  return entropy;
+}
+
+function toSeed(phrase) {
+  toEntropy(phrase.split(' '));
+  let output = CryptoJS.PBKDF2(phrase, "mnemonic", {
+    keySize: 512 / 32,
+    iterations: 2048,
+    hasher: CryptoJS.algo.SHA512
+  });
+  return output.toString().match(/[a-fA-F0-9]{2}/g).map(x => parseInt(x, 16));
+}
