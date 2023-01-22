@@ -157,13 +157,16 @@ function render() {
       if(STATE.account.tokens.length > 0 && STATE.account.tokens[0].token_id == "Ziesha") {
         html += '<p><b>Balance:</b> ' + STATE.account.tokens[0].amount / 1000000000 + "ℤ</p>";
       }
+      let hist = getHistory();
+      for(i in hist) {
+        html += '<p><b>Tx (Nonce: ' + hist[i]["nonce"] + ')</b></p>';
+      }
     }
     html += `
     <form onsubmit="send(event)">
-      <div><label>Nonce: </label><input type="number" name="nonce"/></div>
-      <div><label>To: </label><input type="text" name="to"/></div>
-      <div><label>Amount: </label><input type="number" name="amount"/></div>
-      <div><label>Fee: </label><input type="number" name="fee"/></div>
+      <div><label>To: </label><input type="text" name="to" id="to"/></div>
+      <div><label>Amount: </label><input type="number" name="amount" id="amount"/></div>
+      <div><label>Fee: </label><input type="number" name="fee" id="fee"/></div>
       <div><button>Send!</button></div>
     </form>
       `;
@@ -185,9 +188,39 @@ async function logout(event) {
   render();
 }
 
+function getHistory() {
+  let val = localStorage.getItem("txs");
+  if(val === null) {
+    return [];
+  } else {
+    return JSON.parse(val);
+  }
+}
+
+function addTx(tx) {
+  let hist = getHistory();
+  hist.push(tx);
+  localStorage.setItem("txs", JSON.stringify(hist));
+}
+
 async function send(event) {
   event.preventDefault();
-  let tx = STATE.sk.create_tx(0, PublicKey.fromString("z2314e428356bdc7cf43f02c42d1f8ce0bd10a6cd692d93d61fb040044d7a4d242"), 1000000000, 0);
+  let nonce = STATE.account.nonce;
+  let hist = getHistory();
+  for(i in hist) {
+    if(hist[i]["nonce"] >= nonce) {
+      nonce = hist[i]["nonce"] + 1;
+    }
+  }
+  let to = PublicKey.fromString(document.getElementById("to").value);
+  if(to.toString() == STATE.sk.pub_key.toString()) {
+    alert("Cannot send to yourself!");
+  }
+  let amount = Number(document.getElementById("amount").value);
+  let fee = Number(document.getElementById("fee").value);
+  let tx = STATE.sk.create_tx(nonce, to, amount, fee);
+  addTx(tx);
+
   await sendTx(tx);
 }
 
