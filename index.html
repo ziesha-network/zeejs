@@ -4,20 +4,111 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>ZeeJS Wallet</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <script src='https://kit.fontawesome.com/a076d05399.js' crossorigin='anonymous'></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha3/0.8.0/sha3.min.js" integrity="sha512-PmGDkK2UHGzTUfkFGcJ8YSrD/swUXekcca+1wWlrwALIZho9JX+3ddaaI9wmmf8PmgDIpMtx6TU8YBJAZS0mPQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha512-E8QSvWZ0eCLGk4km3hxSsNmGWbLtSCSUcewDQPQWZF6pEU8GlT8a5fF32wOl1i8ftdMhssTrF/OhyGWwonTcXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <title>ZeeJS - Ziesha Wallet</title>
+  <style>
+    * {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    body {
+      background-color: black;
+      color: white;
+    }
+    p, h1, h2 {
+      padding: 0 10px;
+    }
+    body {
+      font-size: 0.9em;
+    }
+    h2 {
+      margin: 1em 0 0 0;
+    }
+    p {
+      margin: 0.9em 0;
+    }
+    #menu span {
+      font-size:1.2em;
+      padding:0 20px;
+    }
+    a {
+      font:inherit;
+      color:inherit;
+      text-decoration: underline;
+    }
+    #menu a {
+      text-decoration: none;
+    }
+    a:hover, #menu a:hover {
+      font:inherit;
+      color:inherit;
+      text-decoration: underline;
+    }
+    hr {
+      margin: 3em;
+      border: 0;
+      height: 1px;
+      background: #333;
+      background-image: linear-gradient(to right, #ccc, #333, #ccc);
+    }
+
+    button {
+      border: 2px solid white;
+      background-color: black;
+      color: white;
+      padding: 8px 28px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 8px;
+    }
+    button:hover {
+      background-color: white;
+      color: black;
+    }
+    input {
+      border: 1px solid white;
+      background-color: black;
+      color: white;
+      padding: 8px;
+      font-size: 16px;
+      width: 100%;
+      margin: 8px;
+    }
+    *:focus {
+      outline: none;
+    }
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+
+  </style>
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
 </head>
 
 <body>
-  <div id="content">
+  <h1 style="text-align: center;"><img style="height:2em;vertical-align:middle; border-radius: 50%;padding-bottom:0.2em" src="logo.jpg" alt="Ziesha's logo, similar to letter Z"/> ZeeJS Wallet</h1>
+  <div style="max-width: 50em; margin: 0 auto;">
+    <hr>
+    <div id="content">
+    </div>
+    <script src="zeejs.js"></script>
+    <script src="poseidon2_const.js"></script>
+    <script src="poseidon5_const.js"></script>
+    <script src="poseidon7_const.js"></script>
+    <script src="poseidon.js"></script>
+    <script src="bip39.js"></script>
+    <script src="wallet.js"></script>
   </div>
-  <script src="zeejs.js"></script>
-  <script src="poseidon2_const.js"></script>
-  <script src="poseidon5_const.js"></script>
-  <script src="poseidon7_const.js"></script>
-  <script src="poseidon.js"></script>
-  <script src="bip39.js"></script>
-  <script src="wallet.js"></script>
 </body>
 </html>

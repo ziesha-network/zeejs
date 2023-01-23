@@ -137,39 +137,54 @@ async function sendTx(tx) {
       },
       body: JSON.stringify({tx: tx})
   })
-  .then(response => response.json());
+  .then(response => response.text());
 }
 
 function render() {
   if(STATE.sk === null) {
     document.getElementById("content").innerHTML = `
       <form onsubmit="login(event)">
-        <div><label>Mnemonic: </label><input id="mnemonic" type="text" name="mnemonic"/></div>
-        <div><button>Login!</button></div>
+        <div style="text-align:center"><input placeholder="12-word seed phrase" id="mnemonic" type="text" name="mnemonic"/></div>
+        <div style="text-align:center"><button>Login!</button></div>
       </form>
       `;
   }
   else {
     let html = "";
     if(STATE.account !== null) {
-      html += '<p><b>Address:</b> ' + STATE.sk.pub_key + "</p>";
-      html += '<p><b>Nonce:</b> ' + STATE.account.nonce + "</p>";
-      if(STATE.account.tokens.length > 0 && STATE.account.tokens[0].token_id == "Ziesha") {
-        html += '<p><b>Balance:</b> ' + STATE.account.tokens[0].amount / 1000000000 + "ℤ</p>";
-      }
-      let hist = getHistory();
-      for(i in hist) {
-        html += '<p><b>Tx (Nonce: ' + hist[i]["nonce"] + ')</b></p>';
+      html += '<p style="text-align:center"><b>Address:</b><br>' + STATE.sk.pub_key + "</p>";
+      if((0 in STATE.account.tokens) && STATE.account.tokens[0].token_id == "Ziesha") {
+        html += '<p style="text-align:center"><b>Balance:</b><br>' + STATE.account.tokens[0].amount / 1000000000 + "<b>ℤ</b></p>";
       }
     }
     html += `
-    <form onsubmit="send(event)">
-      <div><label>To: </label><input type="text" name="to" id="to"/></div>
-      <div><label>Amount: </label><input type="number" name="amount" id="amount"/></div>
-      <div><label>Fee: </label><input type="number" name="fee" id="fee"/></div>
-      <div><button>Send!</button></div>
+    <form onsubmit="event.preventDefault()">
+      <div><input placeholder="To:" type="text" name="to" id="to"/></div>
+      <div><input placeholder="Amount:" type="number" name="amount" id="amount"/></div>
+      <div><input placeholder="Fee:" type="number" name="fee" id="fee"/></div>
+      <div style="text-align:center">
+        <button onclick="send(event)">Send!</button>
+        <button onclick="logout(event)">Logout!</button>
+        <button onclick="clearHistory(event)">Clear history!</button>
+      </div>
     </form>
       `;
+      if(STATE.account !== null) {
+        let hist = getHistory();
+        let pendings = [];
+        for(i in hist) {
+          if(hist[i]["nonce"] >= STATE.account.nonce) {
+            pendings.push(hist[i])
+          }
+        }
+        if(pendings.length > 0) {
+          html += '<p style="text-align:center;font-size:0.9em"><b>Pending transactions:</b><br>'
+          for(i in pendings) {
+            html += 'Send ' + pendings[i]["amount"] / 1000000000 + 'ℤ to ' + pendings[i]["dst_pub_key"] +'<br>';
+          }
+          html += "</p>"
+        }
+      }
       document.getElementById("content").innerHTML = html;
   }
 }
@@ -216,12 +231,20 @@ async function send(event) {
   if(to.toString() == STATE.sk.pub_key.toString()) {
     alert("Cannot send to yourself!");
   }
-  let amount = Number(document.getElementById("amount").value);
-  let fee = Number(document.getElementById("fee").value);
+  let amount = Math.floor(Number(document.getElementById("amount").value) * 1000000000);
+  let fee = Math.floor(Number(document.getElementById("fee").value) * 1000000000);
   let tx = STATE.sk.create_tx(nonce, to, amount, fee);
   addTx(tx);
 
   await sendTx(tx);
+
+  render();
+}
+
+function clearHistory(event) {
+  event.preventDefault();
+  localStorage.setItem("txs", JSON.stringify([]));
+  render();
 }
 
 render();
