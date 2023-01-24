@@ -184,6 +184,7 @@ function render() {
             html += 'Send ' + pendings[i]["amount"] / 1000000000 + 'ℤ to ' + pendings[i]["dst_pub_key"] +'<br>';
           }
           html += "</p>"
+          html += '<div style="text-align:center"><button onclick="resendPendings(event)">Resend pendings</button>';
         }
       }
       document.getElementById("content").innerHTML = html;
@@ -238,6 +239,18 @@ async function send(event) {
   addTx(tx);
 
   await sendTx(tx);
+
+  render();
+}
+
+async function resendPendings(event) {
+  let hist = getHistory();
+  let nonce = STATE.account.nonce;
+  for(i in hist) {
+    if(hist[i]["nonce"] >= nonce) {
+      await sendTx(hist[i]);
+    }
+  }
 
   render();
 }
