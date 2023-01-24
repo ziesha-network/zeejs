@@ -162,7 +162,7 @@ function render() {
         balance += ".0";
       }
 
-      html += '<p style="text-align:center"><b>Balance:</b><br>' + balance + "<b>ℤ</b></p>";
+      html += '<p style="text-align:center"><b>Balance:</b><br>' + balance + "<b>ℤ</b> <span style='font-size: 0.8em'>(<a onclick='load(event)'>Refresh...</a>)</span></p>";
     }
     html += `
     <form onsubmit="event.preventDefault()">
@@ -197,12 +197,17 @@ function render() {
   }
 }
 
+async function load(event) {
+  event.preventDefault();
+  STATE.account = (await getAccount(STATE.sk.pub_key)).account;
+  render();
+}
+
 async function login(event) {
   event.preventDefault();
   let mnemonic = document.getElementById("mnemonic").value;
   STATE.sk = new PrivateKey(toSeed(mnemonic));
-  STATE.account = (await getAccount(STATE.sk.pub_key)).account;
-  render();
+  await load(event);
 }
 
 async function logout(event) {
