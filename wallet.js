@@ -154,9 +154,15 @@ function render() {
     let html = "";
     if(STATE.account !== null) {
       html += '<p style="text-align:center"><b>Address:</b><br>' + STATE.sk.pub_key + "</p>";
+      var balance = "0.0";
       if((0 in STATE.account.tokens) && STATE.account.tokens[0].token_id == "Ziesha") {
-        html += '<p style="text-align:center"><b>Balance:</b><br>' + STATE.account.tokens[0].amount / 1000000000 + "<b>ℤ</b></p>";
+        balance = (STATE.account.tokens[0].amount / 1000000000).toString();
       }
+      if(!balance.includes('.')) {
+        balance += ".0";
+      }
+
+      html += '<p style="text-align:center"><b>Balance:</b><br>' + balance + "<b>ℤ</b></p>";
     }
     html += `
     <form onsubmit="event.preventDefault()">
