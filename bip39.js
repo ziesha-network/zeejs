@@ -2062,7 +2062,13 @@ function toEntropy(words) {
   }
   let entropy = binary.slice(0, 128);
   let checksum = binary.slice(128);
-  // TODO: Check checksum is correct!
+  var hexEntropy = BigInt('0b' + entropy).toString(16);
+  hexEntropy = ('0'.repeat(32 - hexEntropy.length) + hexEntropy);
+  var expectedChecksum = parseInt(CryptoJS.SHA256(CryptoJS.enc.Hex.parse(hexEntropy)).toString()[0], 16).toString(2);
+  expectedChecksum = '0'.repeat(4 - expectedChecksum.length) + expectedChecksum;
+  if(checksum != expectedChecksum) {
+    throw new Error("Invalid mnemonic phrase checksum!");
+  }
   return entropy;
 }
 
@@ -2074,4 +2080,20 @@ function toSeed(phrase) {
     hasher: CryptoJS.algo.SHA512
   });
   return output.toString().match(/[a-fA-F0-9]{2}/g).map(x => parseInt(x, 16));
+}
+
+function newPhrase() {
+  var array = new Uint8Array(16);
+  self.crypto.getRandomValues(array);
+
+  let hexArr = Array.from(array).map(x => ('0' + x.toString(16)).slice(-2)).join('');
+  var checksum = parseInt(CryptoJS.SHA256(CryptoJS.enc.Hex.parse(hexArr)).toString()[0], 16).toString(2);
+  checksum = '0'.repeat(4 - checksum.length) + checksum;
+  let binary = Array.from(array).map(x => ('0000000' + x.toString(2)).slice(-8)).join('') + checksum;
+  var words = [];
+  for(i=0;i<12;i++) {
+    let slice = parseInt(binary.slice(i*11, i*11+11), 2);
+    words.push(BIP39_WORDS[slice]);
+  }
+  return words.join(' ');
 }

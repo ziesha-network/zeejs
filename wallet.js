@@ -146,6 +146,7 @@ function render() {
       <form onsubmit="login(event)">
         <div style="text-align:center"><input placeholder="12-word seed phrase" id="mnemonic" type="text" name="mnemonic"/></div>
         <div style="text-align:center"><button>Login!</button></div>
+        <div style="text-align:center;">(No seed phrase yet? <a onclick="generatePhrase(event)">Generate a new seed phrase!</a>)</div>
       </form>
       `;
   }
@@ -245,6 +246,10 @@ function clearHistory(event) {
   event.preventDefault();
   localStorage.setItem("txs", JSON.stringify([]));
   render();
+}
+
+function generatePhrase(event) {
+  document.getElementById("mnemonic").value = newPhrase();
 }
 
 render();
