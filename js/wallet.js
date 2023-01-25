@@ -192,7 +192,6 @@ function render() {
     <form onsubmit="event.preventDefault()">
       <div><input placeholder="To:" type="text" name="to" id="to"/></div>
       <div><input placeholder="Amount:" type="number" name="amount" id="amount"/></div>
-      <div><input placeholder="Fee:" type="number" name="fee" id="fee"/></div>
       <div style="text-align:center">
         <button onclick="send(event)">Send!</button>
         <button onclick="logout(event)">Logout!</button>
@@ -278,10 +277,7 @@ async function send(event) {
   let amount = Math.floor(
     Number(document.getElementById("amount").value) * 1000000000
   );
-  let fee = Math.floor(
-    Number(document.getElementById("fee").value) * 1000000000
-  );
-  let tx = STATE.sk.create_tx(nonce, to, amount, fee);
+  let tx = STATE.sk.create_tx(nonce, to, amount, 0);
   addTx(tx);
 
   await sendTx(tx);
