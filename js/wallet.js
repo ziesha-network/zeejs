@@ -186,7 +186,7 @@ function render() {
       html +=
         '<p style="text-align:center"><b>Balance:</b><br>' +
         balance +
-        "<b>ℤ</b> <span style='font-size: 0.8em'>(<a onclick='load(event)'>Refresh...</a>)</span></p>";
+        "<b>ℤ</b> <span style='font-size: 0.8em'>(<a onclick='load()'>Refresh...</a>)</span></p>";
     }
     html += `
     <form onsubmit="event.preventDefault()">
@@ -227,21 +227,25 @@ function render() {
   }
 }
 
-async function load(event) {
-  event.preventDefault();
-  STATE.account = (await getAccount(STATE.sk.pub_key)).account;
+async function load() {
+  let mnemonic = localStorage.getItem("mnemonic");
+  if (mnemonic != null) {
+    STATE.sk = new PrivateKey(toSeed(mnemonic));
+    STATE.account = (await getAccount(STATE.sk.pub_key)).account;
+  }
   render();
 }
 
 async function login(event) {
   event.preventDefault();
   let mnemonic = document.getElementById("mnemonic").value;
-  STATE.sk = new PrivateKey(toSeed(mnemonic));
-  await load(event);
+  localStorage.setItem("mnemonic", mnemonic);
+  await load();
 }
 
 async function logout(event) {
   event.preventDefault();
+  localStorage.removeItem("mnemonic");
   STATE.sk = null;
   render();
 }
@@ -307,4 +311,4 @@ function generatePhrase(event) {
   document.getElementById("mnemonic").value = newPhrase();
 }
 
-render();
+load();
