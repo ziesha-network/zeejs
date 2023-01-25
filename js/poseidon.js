@@ -39,56 +39,50 @@ function full_round(elems, consts, mds, offset) {
   product_mds(elems, mds);
 }
 
-function poseidon2(a, b) {
-  var elems = [new Field(0), a, b];
+function poseidon(elems, rounds, mds, r_f, r_p) {
+  elems.unshift(new Field(0));
   var offset = 0;
-  for (var i = 0; i < POSEIDON2_R_F / 2; i++) {
-    full_round(elems, POSEIDON2_ROUNDS, POSEIDON2_MDS, offset);
+  for (var i = 0; i < r_f / 2; i++) {
+    full_round(elems, rounds, mds, offset);
     offset += elems.length;
   }
-  for (var i = 0; i < POSEIDON2_R_P; i++) {
-    partial_round(elems, POSEIDON2_ROUNDS, POSEIDON2_MDS, offset);
+  for (var i = 0; i < r_p; i++) {
+    partial_round(elems, rounds, mds, offset);
     offset += elems.length;
   }
-  for (var i = 0; i < POSEIDON2_R_F / 2; i++) {
-    full_round(elems, POSEIDON2_ROUNDS, POSEIDON2_MDS, offset);
+  for (var i = 0; i < r_f / 2; i++) {
+    full_round(elems, rounds, mds, offset);
     offset += elems.length;
   }
   return elems[1];
+}
+
+function poseidon2(a, b) {
+  return poseidon(
+    [a, b],
+    POSEIDON2_ROUNDS,
+    POSEIDON2_MDS,
+    POSEIDON2_R_F,
+    POSEIDON2_R_P
+  );
 }
 
 function poseidon5(a, b, c, d, e) {
-  var elems = [new Field(0), a, b, c, d, e];
-  var offset = 0;
-  for (var i = 0; i < POSEIDON5_R_F / 2; i++) {
-    full_round(elems, POSEIDON5_ROUNDS, POSEIDON5_MDS, offset);
-    offset += elems.length;
-  }
-  for (var i = 0; i < POSEIDON5_R_P; i++) {
-    partial_round(elems, POSEIDON5_ROUNDS, POSEIDON5_MDS, offset);
-    offset += elems.length;
-  }
-  for (var i = 0; i < POSEIDON5_R_F / 2; i++) {
-    full_round(elems, POSEIDON5_ROUNDS, POSEIDON5_MDS, offset);
-    offset += elems.length;
-  }
-  return elems[1];
+  return poseidon(
+    [a, b, c, d, e],
+    POSEIDON5_ROUNDS,
+    POSEIDON5_MDS,
+    POSEIDON5_R_F,
+    POSEIDON5_R_P
+  );
 }
 
 function poseidon7(a, b, c, d, e, f, g) {
-  var elems = [new Field(0), a, b, c, d, e, f, g];
-  var offset = 0;
-  for (var i = 0; i < POSEIDON7_R_F / 2; i++) {
-    full_round(elems, POSEIDON7_ROUNDS, POSEIDON7_MDS, offset);
-    offset += elems.length;
-  }
-  for (var i = 0; i < POSEIDON7_R_P; i++) {
-    partial_round(elems, POSEIDON7_ROUNDS, POSEIDON7_MDS, offset);
-    offset += elems.length;
-  }
-  for (var i = 0; i < POSEIDON7_R_F / 2; i++) {
-    full_round(elems, POSEIDON7_ROUNDS, POSEIDON7_MDS, offset);
-    offset += elems.length;
-  }
-  return elems[1];
+  return poseidon(
+    [a, b, c, d, e, f, g],
+    POSEIDON7_ROUNDS,
+    POSEIDON7_MDS,
+    POSEIDON7_R_F,
+    POSEIDON7_R_P
+  );
 }
