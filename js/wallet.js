@@ -200,7 +200,7 @@ function render() {
     </form>
       `;
     if (STATE.account !== null) {
-      let hist = getHistory();
+      let hist = getHistory(STATE.sk.pub_key);
       let pendings = [];
       for (i in hist) {
         if (hist[i]["nonce"] >= STATE.account.nonce) {
@@ -246,8 +246,8 @@ async function logout(event) {
   render();
 }
 
-function getHistory() {
-  let val = localStorage.getItem("txs");
+function getHistory(pub_key) {
+  let val = localStorage.getItem(pub_key.toString());
   if (val === null) {
     return [];
   } else {
@@ -255,16 +255,16 @@ function getHistory() {
   }
 }
 
-function addTx(tx) {
-  let hist = getHistory();
+function addTx(pub_key, tx) {
+  let hist = getHistory(pub_key);
   hist.push(tx);
-  localStorage.setItem("txs", JSON.stringify(hist));
+  localStorage.setItem(pub_key.toString(), JSON.stringify(hist));
 }
 
 async function send(event) {
   event.preventDefault();
   let nonce = STATE.account.nonce;
-  let hist = getHistory();
+  let hist = getHistory(STATE.sk.pub_key);
   for (i in hist) {
     if (hist[i]["nonce"] >= nonce) {
       nonce = hist[i]["nonce"] + 1;
@@ -278,7 +278,7 @@ async function send(event) {
     Number(document.getElementById("amount").value) * 1000000000
   );
   let tx = STATE.sk.create_tx(nonce, to, amount, 0);
-  addTx(tx);
+  addTx(STATE.sk.pub_key, tx);
 
   await sendTx(tx);
 
@@ -286,7 +286,7 @@ async function send(event) {
 }
 
 async function resendPendings(event) {
-  let hist = getHistory();
+  let hist = getHistory(STATE.sk.pub_key);
   let nonce = STATE.account.nonce;
   for (i in hist) {
     if (hist[i]["nonce"] >= nonce) {
@@ -299,7 +299,7 @@ async function resendPendings(event) {
 
 function clearHistory(event) {
   event.preventDefault();
-  localStorage.setItem("txs", JSON.stringify([]));
+  localStorage.setItem(STATE.sk.pub_key.toString(), JSON.stringify([]));
   render();
 }
 
