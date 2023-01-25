@@ -1,18 +1,15 @@
-<!doctype html>
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <title>ZeeJS Wallet</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" rel="stylesheet">
-  <script src='https://kit.fontawesome.com/a076d05399.js' crossorigin='anonymous'></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha3/0.8.0/sha3.min.js" integrity="sha512-PmGDkK2UHGzTUfkFGcJ8YSrD/swUXekcca+1wWlrwALIZho9JX+3ddaaI9wmmf8PmgDIpMtx6TU8YBJAZS0mPQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha512-E8QSvWZ0eCLGk4km3hxSsNmGWbLtSCSUcewDQPQWZF6pEU8GlT8a5fF32wOl1i8ftdMhssTrF/OhyGWwonTcXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <link href="files/css2.css" rel="stylesheet">
+  <script src="files/sha3.min.js"></script>
+  <script src="files/crypto-js.min.js"></script>
   <style>
     * {
       font-family: 'JetBrains Mono', monospace;
@@ -92,22 +89,28 @@
     }
 
   </style>
-  <script async defer src="https://buttons.github.io/buttons.js"></script>
-</head>
+  <script async="" defer="defer" src="files/buttons.js"></script>
+<meta id="Reverso_extension___elForCheckedInstallExtension" name="Reverso extension" content="2.2.205"></head>
 
 <body>
-  <h1 style="text-align: center;"><img style="height:2em;vertical-align:middle; border-radius: 50%;padding-bottom:0.2em" src="logo.jpg" alt="Ziesha's logo, similar to letter Z"/> ZeeJS Wallet</h1>
+  <h1 style="text-align: center;"><img style="height:2em;vertical-align:middle; border-radius: 50%;padding-bottom:0.2em" src="files/logo.jpg" alt="Ziesha's logo, similar to letter Z"> ZeeJS Wallet</h1>
   <div style="max-width: 50em; margin: 0 auto;">
     <hr>
     <div id="content">
-    </div>
-    <script src="zeejs.js"></script>
-    <script src="poseidon2_const.js"></script>
-    <script src="poseidon5_const.js"></script>
-    <script src="poseidon7_const.js"></script>
-    <script src="poseidon.js"></script>
-    <script src="bip39.js"></script>
-    <script src="wallet.js"></script>
+      <form onsubmit="login(event)">
+        <div style="text-align:center"><input placeholder="12-word seed phrase" id="mnemonic" type="text" name="mnemonic"></div>
+        <div style="text-align:center"><button>Login!</button></div>
+        <div style="text-align:center;">(No seed phrase yet? <a onclick="generatePhrase(event)">Generate a new seed phrase!</a>)</div>
+      </form>
+      </div>
+    <script src="files/zeejs.js"></script>
+    <script src="files/poseidon2_const.js"></script>
+    <script src="files/poseidon5_const.js"></script>
+    <script src="files/poseidon7_const.js"></script>
+    <script src="files/poseidon.js"></script>
+    <script src="files/bip39.js"></script>
+    <script src="files/wallet.js"></script>
   </div>
-</body>
-</html>
+
+
+</body></html>
