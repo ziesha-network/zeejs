@@ -145,16 +145,13 @@ async function getAccount(pub_key) {
 }
 
 async function getMempool() {
-  return fetch(
-    "http://" + NODE + "/mempool/zero",
-    {
-      method: "GET",
-      headers: {
-        "X-ZIESHA-NETWORK-NAME": NETWORK,
-        Accept: "application/json",
-      },
-    }
-  ).then((response) => response.json());
+  return fetch("http://" + NODE + "/mempool/zero", {
+    method: "GET",
+    headers: {
+      "X-ZIESHA-NETWORK-NAME": NETWORK,
+      Accept: "application/json",
+    },
+  }).then((response) => response.json());
 }
 
 async function sendTx(tx) {
@@ -249,7 +246,7 @@ function render() {
             "Getting " +
             incomings[i]["amount"] / 1000000000 +
             "ℤ From " +
-            incomings[i]["dst_pub_key"] +
+            incomings[i]["src_pub_key"] +
             "<br>";
         }
         html += "</p>";
@@ -310,14 +307,15 @@ async function send(event) {
   let to = PublicKey.fromString(document.getElementById("to").value);
   if (to.toString() == STATE.sk.pub_key.toString()) {
     alert("Cannot send to yourself!");
-  }
-  let amount = Math.floor(
-    Number(document.getElementById("amount").value) * 1000000000
-  );
-  let tx = STATE.sk.create_tx(nonce, to, amount, 0);
-  addTx(STATE.sk.pub_key, tx);
+  } else {
+    let amount = Math.floor(
+      Number(document.getElementById("amount").value) * 1000000000
+    );
+    let tx = STATE.sk.create_tx(nonce, to, amount, 0);
+    addTx(STATE.sk.pub_key, tx);
 
-  await sendTx(tx);
+    await sendTx(tx);
+  }
 
   render();
 }
