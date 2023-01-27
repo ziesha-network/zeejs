@@ -144,6 +144,19 @@ async function getAccount(pub_key) {
   ).then((response) => response.json());
 }
 
+async function getMempool() {
+  return fetch(
+    "http://" + NODE + "/mempool/zero",
+    {
+      method: "GET",
+      headers: {
+        "X-ZIESHA-NETWORK-NAME": NETWORK,
+        Accept: "application/json",
+      },
+    }
+  ).then((response) => response.json());
+}
+
 async function sendTx(tx) {
   return fetch("http://" + NODE + "/transact/zero", {
     method: "POST",
@@ -207,20 +220,24 @@ function render() {
           pendings.push(hist[i]);
         }
       }
-      if (pendings.length > 0) {
+      var incomings = [];
+      for (i in STATE.mempool["updates"]) {
+        if (STATE.mempool["updates"][i]["dst_pub_key"] == STATE.sk.pub_key) {
+          incomings.push(STATE.mempool["updates"][i]);
+        }
+      }
+      if (incomings.length > 0) {
         html +=
-          '<p style="text-align:center;font-size:0.9em"><b>Pending transactions:</b><br>';
-        for (i in pendings) {
+          '<p style="text-align:center;font-size:0.9em"><b>Incoming transactions:</b><br>';
+        for (i in incomings) {
           html +=
-            "Send " +
-            pendings[i]["amount"] / 1000000000 +
-            "ℤ to " +
-            pendings[i]["dst_pub_key"] +
+            "Getting " +
+            incomings[i]["amount"] / 1000000000 +
+            "ℤ From " +
+            incomings[i]["dst_pub_key"] +
             "<br>";
         }
         html += "</p>";
-        html +=
-          '<div style="text-align:center"><button onclick="resendPendings(event)">Resend pendings</button>';
       }
     }
     document.getElementById("content").innerHTML = html;
@@ -232,6 +249,7 @@ async function load() {
   if (mnemonic != null) {
     STATE.sk = new PrivateKey(toSeed(mnemonic));
     STATE.account = (await getAccount(STATE.sk.pub_key)).account;
+    STATE.mempool = await getMempool();
   }
   render();
 }
