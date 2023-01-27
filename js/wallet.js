@@ -220,6 +220,21 @@ function render() {
           pendings.push(hist[i]);
         }
       }
+      if (pendings.length > 0) {
+        html +=
+          '<p style="text-align:center;font-size:0.9em"><b>Pending transactions:</b><br>';
+        for (i in pendings) {
+          html +=
+            "Send " +
+            pendings[i]["amount"] / 1000000000 +
+            "ℤ to " +
+            pendings[i]["dst_pub_key"] +
+            "<br>";
+        }
+        html += "</p>";
+        html +=
+          '<div style="text-align:center"><button onclick="resendPendings(event)">Resend pendings</button>';
+      }
       var incomings = [];
       for (i in STATE.mempool["updates"]) {
         if (STATE.mempool["updates"][i]["dst_pub_key"] == STATE.sk.pub_key) {
