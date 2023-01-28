@@ -178,6 +178,7 @@ function render() {
   } else {
     let html = "";
     if (STATE.account !== null) {
+      html += "<div id='icon' style='text-align:center'></div>";
       html +=
         '<p style="text-align:center"><b>Address:</b><br>' +
         STATE.sk.pub_key +
@@ -200,6 +201,9 @@ function render() {
     }
     html += `
     <form onsubmit="event.preventDefault()">
+      <div><select id="token" name="token">
+        <option value="Ziesha">Ziesha</option>
+      </select></div>
       <div><input placeholder="To:" type="text" name="to" id="to"/></div>
       <div><input placeholder="Amount:" type="number" name="amount" id="amount"/></div>
       <div style="text-align:center">
@@ -253,6 +257,15 @@ function render() {
       }
     }
     document.getElementById("content").innerHTML = html;
+    if(STATE.account !== null) {
+      var icon = blockies.create({
+          seed: STATE.sk.pub_key.toString(),
+          size: 15,
+          scale: 6,
+          bgcolor: '#000'
+      });
+      document.getElementById('icon').appendChild(icon); // icon is a canvas element
+    }
   }
 }
 
