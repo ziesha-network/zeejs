@@ -177,6 +177,7 @@ function render() {
       `;
   } else {
     let html = "";
+    let tokens = {};
     if (STATE.account !== null) {
       html += "<div id='icon' style='text-align:center'></div>";
       html +=
@@ -193,6 +194,7 @@ function render() {
       if (!balance.includes(".")) {
         balance += ".0";
       }
+      tokens["Ziesha"] = balance + "ℤ";
 
       html +=
         '<p style="text-align:center"><b>Balance:</b><br>' +
@@ -201,9 +203,18 @@ function render() {
     }
     html += `
     <form onsubmit="event.preventDefault()">
-      <div><select id="token" name="token">
-        <option value="Ziesha">Ziesha</option>
-      </select></div>
+      <div><select id="token" name="token">`;
+    for (tkn in tokens) {
+      html +=
+        '<option value="' +
+        tkn +
+        '">' +
+        tkn +
+        ' <i style="font-size:0.6em">(' +
+        tokens[tkn] +
+        ")</i></option>";
+    }
+    html += `</select></div>
       <div><input placeholder="To:" type="text" name="to" id="to"/></div>
       <div><input placeholder="Amount:" type="number" name="amount" id="amount"/></div>
       <div style="text-align:center">
@@ -257,14 +268,14 @@ function render() {
       }
     }
     document.getElementById("content").innerHTML = html;
-    if(STATE.account !== null) {
+    if (STATE.account !== null) {
       var icon = blockies.create({
-          seed: STATE.sk.pub_key.toString(),
-          size: 15,
-          scale: 6,
-          bgcolor: '#000'
+        seed: STATE.sk.pub_key.toString(),
+        size: 15,
+        scale: 6,
+        bgcolor: "#000",
       });
-      document.getElementById('icon').appendChild(icon); // icon is a canvas element
+      document.getElementById("icon").appendChild(icon); // icon is a canvas element
     }
   }
 }
