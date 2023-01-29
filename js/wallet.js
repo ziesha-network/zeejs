@@ -274,7 +274,7 @@ function render() {
       }
     }
     document.getElementById("content").innerHTML = html;
-    if (STATE.account !== null) {
+    /*if (STATE.account !== null) {
       var icon = blockies.create({
         seed: STATE.sk.pub_key.toString(),
         size: 15,
@@ -282,7 +282,7 @@ function render() {
         bgcolor: "#000",
       });
       document.getElementById("icon").appendChild(icon); // icon is a canvas element
-    }
+    }*/
   }
 }
 
