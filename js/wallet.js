@@ -178,7 +178,17 @@ function render() {
   } else {
     let html = "";
     let tokens = {};
+    let pendings = [];
+    let spent = 0;
+
     if (STATE.account !== null) {
+      let hist = getHistory(STATE.sk.pub_key);
+      for (i in hist) {
+        if (hist[i]["nonce"] >= STATE.account.nonce) {
+          spent += hist[i]["amount"];
+          pendings.push(hist[i]);
+        }
+      }
       html += "<div id='icon' style='text-align:center'></div>";
       html +=
         '<p style="text-align:center"><b>Address:</b><br>' +
@@ -189,7 +199,10 @@ function render() {
         0 in STATE.account.tokens &&
         STATE.account.tokens[0].token_id == "Ziesha"
       ) {
-        balance = (STATE.account.tokens[0].amount / 1000000000).toString();
+        balance = (
+          (STATE.account.tokens[0].amount - spent) /
+          1000000000
+        ).toString();
       }
       if (!balance.includes(".")) {
         balance += ".0";
@@ -225,13 +238,6 @@ function render() {
     </form>
       `;
     if (STATE.account !== null) {
-      let hist = getHistory(STATE.sk.pub_key);
-      let pendings = [];
-      for (i in hist) {
-        if (hist[i]["nonce"] >= STATE.account.nonce) {
-          pendings.push(hist[i]);
-        }
-      }
       if (pendings.length > 0) {
         html +=
           '<p style="text-align:center;font-size:0.9em"><b>Pending transactions:</b><br>';
