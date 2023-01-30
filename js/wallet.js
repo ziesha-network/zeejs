@@ -194,16 +194,7 @@ function render() {
         '<p style="text-align:center"><b>Address:</b><br>' +
         STATE.sk.pub_key +
         "</p>";
-      var balance = "0.0";
-      if (
-        0 in STATE.account.tokens &&
-        STATE.account.tokens[0].token_id == "Ziesha"
-      ) {
-        balance = (
-          (STATE.account.tokens[0].amount - spent) /
-          1000000000
-        ).toString();
-      }
+      var balance = (STATE.account.ziesha / 1000000000).toString();
       if (!balance.includes(".")) {
         balance += ".0";
       }
@@ -286,11 +277,28 @@ function render() {
   }
 }
 
+function Account(acc) {
+  this.nonce = acc.nonce;
+  if (0 in acc.tokens && acc.tokens[0].token_id == "Ziesha") {
+    this.ziesha = acc.tokens[0].amount;
+  } else {
+    this.ziesha = 0;
+  }
+}
+
 async function load() {
   let mnemonic = localStorage.getItem("mnemonic");
   if (mnemonic != null) {
-    STATE.sk = new PrivateKey(toSeed(mnemonic));
-    STATE.account = (await getAccount(STATE.sk.pub_key)).account;
+    try {
+      STATE.sk = new PrivateKey(toSeed(mnemonic));
+    } catch (e) {
+      localStorage.removeItem("mnemonic");
+      STATE.account = null;
+      alert("Invalid phrase!");
+      render();
+      return;
+    }
+    STATE.account = new Account((await getAccount(STATE.sk.pub_key)).account);
     STATE.mempool = await getMempool();
   }
   render();
@@ -341,10 +349,14 @@ async function send(event) {
     let amount = Math.floor(
       Number(document.getElementById("amount").value) * 1000000000
     );
-    let tx = STATE.sk.create_tx(nonce, to, amount, 0);
-    addTx(STATE.sk.pub_key, tx);
+    if (amount <= STATE.account.ziesha) {
+      let tx = STATE.sk.create_tx(nonce, to, amount, 0);
+      addTx(STATE.sk.pub_key, tx);
 
-    await sendTx(tx);
+      await sendTx(tx);
+    } else {
+      alert("Balance insufficient!");
+    }
   }
 
   render();
