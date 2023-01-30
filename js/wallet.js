@@ -129,7 +129,7 @@ PrivateKey.prototype.create_tx = function (nonce, to, amount, fee) {
 
 var STATE = { sk: null, account: null };
 let NODE = "65.108.193.133:8765";
-let NETWORK = "debug";
+let NETWORK = "pelmeni";
 
 async function getAccount(pub_key) {
   return fetch(
