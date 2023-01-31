@@ -141,7 +141,52 @@ async function getAccount(pub_key) {
         Accept: "application/json",
       },
     }
-  ).then((response) => response.json());
+  )
+    .then((response) => response.text())
+    .then((txt) => parseWithBigInt(txt));
+}
+
+const isBigNumber = (num) => !Number.isSafeInteger(+num);
+
+const enquoteBigNumber = (jsonString) =>
+  jsonString.replaceAll(
+    /([:\s\[,]*)(\d+)([\s,\]]*)/g,
+    (matchingSubstr, prefix, bigNum, suffix) =>
+      isBigNumber(bigNum) ? `${prefix}"${bigNum}"${suffix}` : matchingSubstr
+  );
+
+const parseWithBigInt = (jsonString) =>
+  JSON.parse(enquoteBigNumber(jsonString), (key, value) =>
+    !isNaN(value) && isBigNumber(value) ? BigInt(value) : value
+  );
+
+function parseTokenId(id) {
+  if (id.Custom == undefined) {
+    return "Ziesha";
+  } else {
+    var n = BigInt(id.Custom[3]);
+    n = n << BigInt(64);
+    n += BigInt(id.Custom[2]);
+    n = n << BigInt(64);
+    n += BigInt(id.Custom[1]);
+    n = n << BigInt(64);
+    n += BigInt(id.Custom[0]);
+    let r_inv = new Field(MODULUS_R).invert();
+    n = new Field(n * r_inv.value);
+    var hex = n.value.toString(16);
+    hex = "0".repeat(64 - hex.length) + hex;
+    return "0x" + hex;
+  }
+}
+
+async function getToken(id) {
+  return fetch("http://" + NODE + "/token?token_id=" + id, {
+    method: "GET",
+    headers: {
+      "X-ZIESHA-NETWORK-NAME": NETWORK,
+      Accept: "application/json",
+    },
+  }).then((response) => response.json());
 }
 
 async function getMempool() {
@@ -199,6 +244,11 @@ function render() {
         balance += ".0";
       }
       tokens["Ziesha"] = balance + "ℤ";
+
+      for (t in STATE.account.tokens) {
+        tokens[STATE.token_info[t].name] =
+          STATE.account.tokens[t] + " " + STATE.token_info[t].symbol;
+      }
 
       html +=
         '<p style="text-align:center"><b>Balance:</b><br>' +
@@ -284,6 +334,15 @@ function Account(acc) {
   } else {
     this.ziesha = 0;
   }
+  this.tokens = {};
+  for (ind in acc.tokens) {
+    if (ind != 0) {
+      let tkn_id = parseTokenId(acc.tokens[ind].token_id);
+      if (!(tkn_id in this.tokens)) {
+        this.tokens[tkn_id] = acc.tokens[ind].amount;
+      }
+    }
+  }
 }
 
 async function load() {
@@ -299,6 +358,10 @@ async function load() {
       return;
     }
     STATE.account = new Account((await getAccount(STATE.sk.pub_key)).account);
+    STATE.token_info = {};
+    for (tkn in STATE.account.tokens) {
+      STATE.token_info[tkn] = (await getToken(tkn))["token"];
+    }
     STATE.mempool = await getMempool();
   }
   render();
