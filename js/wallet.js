@@ -169,7 +169,7 @@ async function sendTx(tx) {
 function render() {
   if (STATE.sk === null) {
     document.getElementById("content").innerHTML = `
-      <form onsubmit="login(event)">
+      <form autocomplete="off" onsubmit="login(event)">
         <div style="text-align:center"><input placeholder="12-word seed phrase" id="mnemonic" type="text" name="mnemonic"/></div>
         <div style="text-align:center"><button>Login!</button></div>
         <div style="text-align:center;">(No seed phrase yet? <a onclick="generatePhrase(event)">Generate a new seed phrase!</a>)</div>
