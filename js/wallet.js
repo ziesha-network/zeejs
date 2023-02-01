@@ -190,7 +190,7 @@ async function getToken(id) {
 }
 
 async function getMempool() {
-  return fetch("http://" + NODE + "/mempool/zero", {
+  return fetch("http://" + NODE + "/mempool", {
     method: "GET",
     headers: {
       "X-ZIESHA-NETWORK-NAME": NETWORK,
