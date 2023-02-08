@@ -130,6 +130,14 @@ PrivateKey.prototype.create_tx = function (nonce, to, amount, fee) {
 var STATE = { sk: null, account: null };
 let NODE = "213.14.138.127:8765";
 let NETWORK = "pelmeni-4";
+let POOLS = [
+  "213.14.138.127:8765",
+  "117.62.66.67:8765",
+  "110.186.73.243:8765",
+  "89.179.68.98:8765",
+  "95.161.216.108:8765",
+  "93.157.251.188:8765"
+];
 
 async function getAccount(pub_key) {
   return fetch(
@@ -200,15 +208,19 @@ async function getMempool() {
 }
 
 async function sendTx(tx) {
-  return fetch("http://" + NODE + "/transact/zero", {
-    method: "POST",
-    headers: {
-      "X-ZIESHA-NETWORK-NAME": NETWORK,
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify({ tx: tx }),
-  }).then((response) => response.text());
+  var tasks = [];
+  for(i in POOLS) {
+    tasks.push(fetch("http://" + POOLS[i] + "/transact/zero", {
+      method: "POST",
+      headers: {
+        "X-ZIESHA-NETWORK-NAME": NETWORK,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ tx: tx }),
+    }).then((response) => response.text()));
+  }
+  return Promise.all(tasks);
 }
 
 function render() {
