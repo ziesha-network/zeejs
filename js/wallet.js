@@ -136,7 +136,7 @@ let POOLS = [
   "110.186.73.243:8765",
   "89.179.68.98:8765",
   "95.161.216.108:8765",
-  "93.157.251.188:8765"
+  "93.157.251.188:8765",
 ];
 
 async function getAccount(pub_key) {
@@ -197,8 +197,8 @@ async function getToken(id) {
   }).then((response) => response.json());
 }
 
-async function getMempool() {
-  return fetch("http://" + NODE + "/mempool", {
+async function getMempool(addr) {
+  return fetch("http://" + NODE + "/mempool?mpn_address=" + addr, {
     method: "GET",
     headers: {
       "X-ZIESHA-NETWORK-NAME": NETWORK,
@@ -209,16 +209,18 @@ async function getMempool() {
 
 async function sendTx(tx) {
   var tasks = [];
-  for(i in POOLS) {
-    tasks.push(fetch("http://" + POOLS[i] + "/transact/zero", {
-      method: "POST",
-      headers: {
-        "X-ZIESHA-NETWORK-NAME": NETWORK,
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({ tx: tx }),
-    }).then((response) => response.text()));
+  for (i in POOLS) {
+    tasks.push(
+      fetch("http://" + POOLS[i] + "/transact/zero", {
+        method: "POST",
+        headers: {
+          "X-ZIESHA-NETWORK-NAME": NETWORK,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ tx: tx }),
+      }).then((response) => response.text())
+    );
   }
   return Promise.all(tasks);
 }
@@ -374,7 +376,7 @@ async function load() {
     for (tkn in STATE.account.tokens) {
       STATE.token_info[tkn] = (await getToken(tkn))["token"];
     }
-    STATE.mempool = await getMempool();
+    STATE.mempool = await getMempool(STATE.sk.pub_key);
   }
   render();
 }
