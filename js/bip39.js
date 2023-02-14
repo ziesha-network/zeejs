@@ -2050,6 +2050,9 @@ BIP39_WORDS = [
 ];
 
 function toEntropy(words) {
+  if(words.length != 12) {
+    throw new Error("Invalid mnemonic phrase!");
+  }
   var binary = "";
   for (var i = 0; i < 12; i++) {
     var indOf = BIP39_WORDS.indexOf(words[i]);

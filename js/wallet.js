@@ -378,19 +378,18 @@ async function load() {
   if (mnemonic != null) {
     try {
       STATE.sk = new PrivateKey(toSeed(mnemonic));
+      STATE.account = new Account((await getAccount(STATE.sk.pub_key)).account);
+      STATE.token_info = {};
+      for (tkn in STATE.account.tokens) {
+        STATE.token_info[tkn] = (await getToken(tkn))["token"];
+      }
+      STATE.mempool = await getMempool(STATE.sk.pub_key);
     } catch (e) {
       localStorage.removeItem("mnemonic");
+      STATE.sk = null;
       STATE.account = null;
-      alert("Invalid phrase!");
-      render();
-      return;
+      alert(e);
     }
-    STATE.account = new Account((await getAccount(STATE.sk.pub_key)).account);
-    STATE.token_info = {};
-    for (tkn in STATE.account.tokens) {
-      STATE.token_info[tkn] = (await getToken(tkn))["token"];
-    }
-    STATE.mempool = await getMempool(STATE.sk.pub_key);
   }
   render();
 }
