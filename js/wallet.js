@@ -139,6 +139,19 @@ let POOLS = [
   "93.157.251.188:8765",
 ];
 
+async function fetchWithTimeout(resource, options = {}) {
+  const { timeout = 2000 } = options;
+
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  const response = await fetch(resource, {
+    ...options,
+    signal: controller.signal,
+  });
+  clearTimeout(id);
+  return response;
+}
+
 async function getAccount(pub_key) {
   return fetch(
     "http://" + NODE + "/mpn/account?index=" + pub_key.mpn_account_index(),
@@ -211,7 +224,7 @@ async function sendTx(tx) {
   var tasks = [];
   for (i in POOLS) {
     tasks.push(
-      fetch("http://" + POOLS[i] + "/transact/zero", {
+      fetchWithTimeout("http://" + POOLS[i] + "/transact/zero", {
         method: "POST",
         headers: {
           "X-ZIESHA-NETWORK-NAME": NETWORK,
@@ -430,7 +443,9 @@ async function send(event) {
       let tx = STATE.sk.create_tx(nonce, to, amount, 0);
       addTx(STATE.sk.pub_key, tx);
 
-      await sendTx(tx);
+      try {
+        await sendTx(tx);
+      } catch (e) {}
     } else {
       alert("Balance insufficient!");
     }
