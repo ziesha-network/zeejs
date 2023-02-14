@@ -384,6 +384,7 @@ async function load() {
         STATE.token_info[tkn] = (await getToken(tkn))["token"];
       }
       STATE.mempool = await getMempool(STATE.sk.pub_key);
+      modalOk();
     } catch (e) {
       localStorage.removeItem("mnemonic");
       STATE.sk = null;
@@ -398,6 +399,10 @@ async function login(event) {
   event.preventDefault();
   let mnemonic = document.getElementById("mnemonic").value;
   localStorage.setItem("mnemonic", mnemonic);
+  document.getElementById("modal").innerHTML = "<p>Loading...</p>";
+  document
+    .getElementById("modal-back")
+    .style.setProperty("visibility", "visible");
   await load();
 }
 
