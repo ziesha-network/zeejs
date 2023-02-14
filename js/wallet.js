@@ -391,6 +391,8 @@ async function load() {
       STATE.account = null;
       alert(e);
     }
+  } else {
+    modalOk();
   }
   render();
 }
