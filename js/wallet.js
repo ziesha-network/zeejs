@@ -302,6 +302,7 @@ function render() {
         <button onclick="send(event)">Send!</button>
         <button onclick="logout(event)">Logout!</button>
         <button onclick="clearHistory(event)">Clear history!</button>
+        <button onclick="showSeed(event)">Show seed!</button>
       </div>
     </form>
       `;
@@ -404,8 +405,19 @@ async function login(event) {
 async function logout(event) {
   event.preventDefault();
   localStorage.removeItem("mnemonic");
+  clearHistory(event);
   STATE.sk = null;
   render();
+}
+
+function showSeed(event) {
+  event.preventDefault();
+  let mnemonic = localStorage.getItem("mnemonic");
+  alert(
+    "<span style='font-size:0.9em'>Your seed is:</span><br><br><b>" +
+      mnemonic +
+      "</b>"
+  );
 }
 
 function getHistory(pub_key) {
@@ -437,6 +449,16 @@ function alert(msg) {
     .style.setProperty("visibility", "visible");
 }
 
+async function acceptSendTx(event) {
+  event.preventDefault();
+  addTx(STATE.sk.pub_key, STATE.tx_to_send);
+  try {
+    await sendTx(tx);
+  } catch (e) {}
+  modalOk();
+  render();
+}
+
 async function send(event) {
   event.preventDefault();
   let nonce = STATE.account.nonce;
@@ -462,10 +484,16 @@ async function send(event) {
       let amount = Math.floor(Number(amountValue) * 1000000000);
       if (amount <= STATE.account.ziesha) {
         let tx = STATE.sk.create_tx(nonce, to, amount, 0);
-        addTx(STATE.sk.pub_key, tx);
-        try {
-          await sendTx(tx);
-        } catch (e) {}
+        STATE.tx_to_send = tx;
+        document.getElementById("modal").innerHTML =
+          "<p>You are going to send " +
+          amountValue +
+          "ℤ to:<br>" +
+          to.toString() +
+          "!</p><button onclick='acceptSendTx(event)'>Send!</button><button onclick='modalOk()'>Cancel</button>";
+        document
+          .getElementById("modal-back")
+          .style.setProperty("visibility", "visible");
       } else {
         throw Error("Balance insufficient!");
       }
