@@ -92,6 +92,33 @@
       input[type="number"] {
         -moz-appearance: textfield;
       }
+      #modal-back {
+        visibility: hidden;
+        background-color: rgba(0, 0, 0, 0.5);
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        z-index: 1000;
+      }
+      #modal {
+        width: 350px;
+        margin: 100px auto;
+        background-color: black;
+        border: 2px solid white;
+        padding: 10px;
+        text-align: center;
+        font-weight: bold;
+        font-size: 15px;
+        position: absolute;
+        left: 50%;
+        top: 30%;
+        transform: translate(-50%, -50%);
+        -ms-transform: translate(-50%, -50%);
+        -webkit-transform: translate(-50%, -50%);
+      }
     </style>
   </head>
 
@@ -113,6 +140,10 @@
       <hr />
       <div id="content">
         <div style="text-align: center">Loading...</div>
+      </div>
+      <div id="modal-back">
+        <div id="modal">
+        </div>
       </div>
       <script src="js/zeejs.js"></script>
       <script src="js/poseidon2_const.js"></script>

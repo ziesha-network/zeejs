@@ -423,6 +423,20 @@ function addTx(pub_key, tx) {
   localStorage.setItem(pub_key.toString(), JSON.stringify(hist));
 }
 
+function modalOk() {
+  document
+    .getElementById("modal-back")
+    .style.setProperty("visibility", "hidden");
+}
+
+function alert(msg) {
+  document.getElementById("modal").innerHTML =
+    "<p>" + msg + "</p><button onclick='modalOk()'>Ok!</button>";
+  document
+    .getElementById("modal-back")
+    .style.setProperty("visibility", "visible");
+}
+
 async function send(event) {
   event.preventDefault();
   let nonce = STATE.account.nonce;
@@ -432,23 +446,32 @@ async function send(event) {
       nonce = hist[i]["nonce"] + 1;
     }
   }
-  let to = PublicKey.fromString(document.getElementById("to").value);
-  if (to.toString() == STATE.sk.pub_key.toString()) {
-    alert("Cannot send to yourself!");
-  } else {
-    let amount = Math.floor(
-      Number(document.getElementById("amount").value) * 1000000000
-    );
-    if (amount <= STATE.account.ziesha) {
-      let tx = STATE.sk.create_tx(nonce, to, amount, 0);
-      addTx(STATE.sk.pub_key, tx);
-
-      try {
-        await sendTx(tx);
-      } catch (e) {}
-    } else {
-      alert("Balance insufficient!");
+  try {
+    let toValue = document.getElementById("to").value;
+    let amountValue = document.getElementById("amount").value;
+    if (!toValue) {
+      throw Error("Address cannot be empty!");
     }
+    let to = PublicKey.fromString(toValue);
+    if (to.toString() == STATE.sk.pub_key.toString()) {
+      throw Error("Cannot send to yourself!");
+    } else {
+      if (!amountValue) {
+        throw Error("Amount cannot be empty!");
+      }
+      let amount = Math.floor(Number(amountValue) * 1000000000);
+      if (amount <= STATE.account.ziesha) {
+        let tx = STATE.sk.create_tx(nonce, to, amount, 0);
+        addTx(STATE.sk.pub_key, tx);
+        try {
+          await sendTx(tx);
+        } catch (e) {}
+      } else {
+        throw Error("Balance insufficient!");
+      }
+    }
+  } catch (e) {
+    alert(e);
   }
 
   render();
