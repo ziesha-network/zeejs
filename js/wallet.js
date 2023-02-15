@@ -375,6 +375,10 @@ function Account(acc) {
 
 async function load() {
   let mnemonic = localStorage.getItem("mnemonic");
+  document.getElementById("modal").innerHTML = "<p>Loading...</p>";
+  document
+    .getElementById("modal-back")
+    .style.setProperty("visibility", "visible");
   if (mnemonic != null) {
     try {
       STATE.sk = new PrivateKey(toSeed(mnemonic));
