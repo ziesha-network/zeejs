@@ -523,7 +523,11 @@ async function send(event) {
       if (!amountValue) {
         throw Error("Amount cannot be empty!");
       }
-      let amount = Math.floor(Number(amountValue) * 1000000000);
+      if(tokenValue == "Ziesha") {
+        let amount = Math.floor(Number(amountValue) * 1000000000);
+      } else {
+        let amount = Number(amountValue);
+      }
       let dstAcc = new Account((await getAccount(to)).account);
       if (amount <= STATE.account.ziesha) {
         let tx = STATE.sk.create_tx(
