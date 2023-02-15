@@ -278,11 +278,12 @@ function render() {
       if (!balance.includes(".")) {
         balance += ".0";
       }
-      tokens["Ziesha"] = balance + "ℤ";
 
       for (t in STATE.account.tokens) {
         tokens[t] = STATE.account.tokens[t] + " " + STATE.token_info[t].symbol;
       }
+
+      tokens["Ziesha"] = balance + "ℤ";
 
       html +=
         '<p style="text-align:center"><b>Balance:</b><br>' +
