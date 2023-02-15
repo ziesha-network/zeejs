@@ -319,9 +319,13 @@ function render() {
         html +=
           '<p style="text-align:center;font-size:0.9em"><b>Pending transactions:</b><br>';
         for (i in pendings) {
+          let amnt = pendings[i]["amount"];
+          if (pendings[i]["amount_token_id"] == "Ziesha") {
+            amnt = amnt / 1000000000;
+          }
           html +=
             "Send " +
-            pendings[i]["amount"] / 1000000000 +
+            amnt +
             " " +
             STATE.token_info[pendings[i]["amount_token_id"]].symbol +
             " to " +
@@ -342,10 +346,19 @@ function render() {
         html +=
           '<p style="text-align:center;font-size:0.9em"><b>Incoming transactions:</b><br>';
         for (i in incomings) {
+          var amnt = incomings[i]["amount"];
+          var tkn = "(Unknown token)";
+          if (incomings[i]["amount_token_id"] == "Ziesha") {
+            amnt = amnt / 1000000000;
+            tkn = "ℤ";
+          }
+
           html +=
             "Getting " +
-            incomings[i]["amount"] / 1000000000 +
-            "ℤ From " +
+            amnt +
+            tkn +
+            " " +
+            " From " +
             incomings[i]["src_pub_key"] +
             "<br>";
         }
@@ -523,13 +536,11 @@ async function send(event) {
       if (!amountValue) {
         throw Error("Amount cannot be empty!");
       }
-      if(tokenValue == "Ziesha") {
-        let amount = Math.floor(Number(amountValue) * 1000000000);
-      } else {
-        let amount = Number(amountValue);
-      }
+      let amount = Math.floor(
+        Number(amountValue) * (tokenValue == "Ziesha" ? 1000000000 : 1)
+      );
       let dstAcc = new Account((await getAccount(to)).account);
-      if (amount <= STATE.account.ziesha) {
+      if (tokenValue != "Ziesha" || amount <= STATE.account.ziesha) {
         let tx = STATE.sk.create_tx(
           nonce,
           to,
