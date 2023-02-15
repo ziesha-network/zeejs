@@ -101,7 +101,15 @@ PublicKey.prototype.verify = function (msg, sig) {
   return r_plus_ha.equals(sb);
 };
 
-PrivateKey.prototype.create_tx = function (nonce, to, amount, fee) {
+PrivateKey.prototype.create_tx = function (
+  nonce,
+  to,
+  amount,
+  fee,
+  tokenId,
+  srcTokenIndex,
+  dstTokenIndex
+) {
   let tx_hash = poseidon7(
     new Field(nonce),
     to.point.x,
@@ -116,10 +124,10 @@ PrivateKey.prototype.create_tx = function (nonce, to, amount, fee) {
     nonce: nonce,
     src_pub_key: this.pub_key.toString(),
     dst_pub_key: to.toString(),
-    src_token_index: 0,
+    src_token_index: srcTokenIndex,
     src_fee_token_index: 0,
-    dst_token_index: 0,
-    amount_token_id: "Ziesha",
+    dst_token_index: dstTokenIndex,
+    amount_token_id: tokenId,
     fee_token_id: "Ziesha",
     amount: amount,
     fee: fee,
@@ -273,8 +281,7 @@ function render() {
       tokens["Ziesha"] = balance + "ℤ";
 
       for (t in STATE.account.tokens) {
-        tokens[STATE.token_info[t].name] =
-          STATE.account.tokens[t] + " " + STATE.token_info[t].symbol;
+        tokens[t] = STATE.account.tokens[t] + " " + STATE.token_info[t].symbol;
       }
 
       html +=
@@ -290,7 +297,7 @@ function render() {
         '<option value="' +
         tkn +
         '">' +
-        tkn +
+        STATE.token_info[tkn].name +
         ' <i style="font-size:0.6em">(' +
         tokens[tkn] +
         ")</i></option>";
@@ -314,7 +321,9 @@ function render() {
           html +=
             "Send " +
             pendings[i]["amount"] / 1000000000 +
-            "ℤ to " +
+            " " +
+            STATE.token_info[pendings[i]["amount_token_id"]].symbol +
+            " to " +
             pendings[i]["dst_pub_key"] +
             "<br>";
         }
@@ -363,15 +372,36 @@ function Account(acc) {
     this.ziesha = 0;
   }
   this.tokens = {};
+  this.token_to_index = {};
+  this.index_to_token = {};
   for (ind in acc.tokens) {
-    if (ind != 0) {
-      let tkn_id = parseTokenId(acc.tokens[ind].token_id);
-      if (!(tkn_id in this.tokens)) {
-        this.tokens[tkn_id] = acc.tokens[ind].amount;
-      }
+    let tkn_id = parseTokenId(acc.tokens[ind].token_id);
+    if (!(tkn_id in this.tokens)) {
+      this.tokens[tkn_id] = acc.tokens[ind].amount;
+      this.token_to_index[tkn_id] = parseInt(ind);
+      this.index_to_token[parseInt(ind)] = tkn_id;
     }
   }
 }
+
+Account.prototype.findTokenIndex = function (tknId, allowEmpty) {
+  if (tknId == "Ziesha") {
+    return 0;
+  }
+  if (tknId in this.token_to_index) {
+    return this.token_to_index[tknId];
+  } else {
+    if (allowEmpty) {
+      for (i = 1; i < 64; i++) {
+        if (this.index_to_token[i] === undefined) {
+          return i;
+        }
+      }
+    } else {
+      throw Error("Token not found!");
+    }
+  }
+};
 
 async function load() {
   let mnemonic = localStorage.getItem("mnemonic");
@@ -383,7 +413,7 @@ async function load() {
     try {
       STATE.sk = new PrivateKey(toSeed(mnemonic));
       STATE.account = new Account((await getAccount(STATE.sk.pub_key)).account);
-      STATE.token_info = {};
+      STATE.token_info = { Ziesha: { name: "Ziesha", symbol: "ℤ" } };
       for (tkn in STATE.account.tokens) {
         STATE.token_info[tkn] = (await getToken(tkn))["token"];
       }
@@ -481,6 +511,7 @@ async function send(event) {
   try {
     let toValue = document.getElementById("to").value;
     let amountValue = document.getElementById("amount").value;
+    let tokenValue = document.getElementById("token").value;
     if (!toValue) {
       throw Error("Address cannot be empty!");
     }
@@ -492,13 +523,24 @@ async function send(event) {
         throw Error("Amount cannot be empty!");
       }
       let amount = Math.floor(Number(amountValue) * 1000000000);
+      let dstAcc = new Account((await getAccount(to)).account);
       if (amount <= STATE.account.ziesha) {
-        let tx = STATE.sk.create_tx(nonce, to, amount, 0);
+        let tx = STATE.sk.create_tx(
+          nonce,
+          to,
+          amount,
+          0,
+          tokenValue,
+          STATE.account.findTokenIndex(tokenValue, false),
+          dstAcc.findTokenIndex(tokenValue, true)
+        );
         STATE.tx_to_send = tx;
         document.getElementById("modal").innerHTML =
           "<p>You are going to send " +
           amountValue +
-          "ℤ to:<br>" +
+          " " +
+          STATE.token_info[tokenValue].symbol +
+          " to:<br>" +
           to.toString() +
           "!</p><button onclick='acceptSendTx(event)'>Send!</button><button onclick='modalOk()'>Cancel</button>";
         document
