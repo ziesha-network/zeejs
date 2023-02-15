@@ -129,7 +129,7 @@ PrivateKey.prototype.create_tx = function (nonce, to, amount, fee) {
 
 var STATE = { sk: null, account: null };
 let NODE = "213.14.138.127:8765";
-let NETWORK = "pelmeni-5";
+let NETWORK = "pelmeni-6";
 let POOLS = [
   "213.14.138.127:8765",
   "117.62.66.67:8765",
