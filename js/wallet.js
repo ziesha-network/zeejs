@@ -114,7 +114,7 @@ PrivateKey.prototype.create_tx = function (
     new Field(nonce),
     to.point.x,
     to.point.y,
-    new Field(1),
+    new Field(BigInt(tokenId)),
     new Field(amount),
     new Field(1),
     new Field(fee)
@@ -494,7 +494,7 @@ async function acceptSendTx(event) {
   event.preventDefault();
   addTx(STATE.sk.pub_key, STATE.tx_to_send);
   try {
-    await sendTx(tx);
+    await sendTx(STATE.tx_to_send);
   } catch (e) {}
   modalOk();
   render();
