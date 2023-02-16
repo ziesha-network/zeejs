@@ -110,11 +110,15 @@ PrivateKey.prototype.create_tx = function (
   srcTokenIndex,
   dstTokenIndex
 ) {
+  var tokenIdBigInt = BigInt(1);
+  if(tokenId != "Ziesha") {
+    tokenIdBigInt = BigInt(tokenId);
+  }
   let tx_hash = poseidon7(
     new Field(nonce),
     to.point.x,
     to.point.y,
-    new Field(BigInt(tokenId)),
+    new Field(tokenIdBigInt),
     new Field(amount),
     new Field(1),
     new Field(fee)
