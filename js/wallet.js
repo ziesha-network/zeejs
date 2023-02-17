@@ -385,7 +385,7 @@ function render() {
 function Account(acc) {
   this.nonce = acc.nonce;
   if (0 in acc.tokens && acc.tokens[0].token_id == "Ziesha") {
-    this.ziesha = acc.tokens[0].amount;
+    this.ziesha = BigInt(acc.tokens[0].amount);
   } else {
     this.ziesha = BigInt(0);
   }
