@@ -278,6 +278,10 @@ function render() {
         '<p style="text-align:center"><b>Address:</b><br>' +
         STATE.sk.pub_key +
         "</p>";
+      html +=
+        '<p style="text-align:center"><b>Nonce:</b> ' +
+        STATE.account.nonce +
+        "</p>";
       var balance = (Number(STATE.account.ziesha) / 1000000000).toString();
       if (!balance.includes(".")) {
         balance += ".0";
@@ -290,7 +294,7 @@ function render() {
       tokens["Ziesha"] = balance + "ℤ";
 
       html +=
-        '<p style="text-align:center"><b>Balance:</b><br>' +
+        '<p style="text-align:center"><b>Balance:</b> ' +
         balance +
         "<b>ℤ</b> <span style='font-size: 0.8em'>(<a onclick='load()'>Refresh...</a>)</span></p>";
     }
@@ -341,9 +345,12 @@ function render() {
           '<div style="text-align:center"><button onclick="resendPendings(event)">Resend pendings</button>';
       }
       var incomings = [];
+      var outgoings = [];
       for (i in STATE.mempool["updates"]) {
         if (STATE.mempool["updates"][i]["dst_pub_key"] == STATE.sk.pub_key) {
           incomings.push(STATE.mempool["updates"][i]);
+        } else if (STATE.mempool["updates"][i]["src_pub_key"] == STATE.sk.pub_key) {
+          outgoings.push(STATE.mempool["updates"][i]);
         }
       }
       if (incomings.length > 0) {
@@ -364,6 +371,28 @@ function render() {
             " " +
             " From " +
             incomings[i]["src_pub_key"] +
+            "<br>";
+        }
+        html += "</p>";
+      }
+      if (outgoings.length > 0) {
+        html +=
+          '<p style="text-align:center;font-size:0.9em"><b>Outgoing transactions:</b><br>';
+        for (i in outgoings) {
+          var amnt = outgoings[i]["amount"];
+          var tkn = "(Unknown token)";
+          if (outgoings[i]["amount_token_id"] == "Ziesha") {
+            amnt = amnt / 1000000000;
+            tkn = "ℤ";
+          }
+
+          html +=
+            "Sending " +
+            amnt +
+            tkn +
+            " " +
+            " To " +
+            outgoings[i]["dst_pub_key"] + " <i>(Nonce: " + outgoings[i]["nonce"] + ")</i>" +
             "<br>";
         }
         html += "</p>";
