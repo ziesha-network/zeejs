@@ -278,7 +278,7 @@ function render() {
         '<p style="text-align:center"><b>Address:</b><br>' +
         STATE.sk.pub_key +
         "</p>";
-      var balance = (STATE.account.ziesha / BigInt(1000000000)).toString();
+      var balance = (Number(STATE.account.ziesha) / 1000000000).toString();
       if (!balance.includes(".")) {
         balance += ".0";
       }
