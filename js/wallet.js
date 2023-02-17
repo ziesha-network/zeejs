@@ -278,7 +278,7 @@ function render() {
         '<p style="text-align:center"><b>Address:</b><br>' +
         STATE.sk.pub_key +
         "</p>";
-      var balance = (STATE.account.ziesha / 1000000000).toString();
+      var balance = (STATE.account.ziesha / BigInt(1000000000)).toString();
       if (!balance.includes(".")) {
         balance += ".0";
       }
@@ -387,7 +387,7 @@ function Account(acc) {
   if (0 in acc.tokens && acc.tokens[0].token_id == "Ziesha") {
     this.ziesha = acc.tokens[0].amount;
   } else {
-    this.ziesha = 0;
+    this.ziesha = BigInt(0);
   }
   this.tokens = {};
   this.token_to_index = {};
@@ -544,7 +544,7 @@ async function send(event) {
         Number(amountValue) * (tokenValue == "Ziesha" ? 1000000000 : 1)
       );
       let dstAcc = new Account((await getAccount(to)).account);
-      if (tokenValue != "Ziesha" || amount <= STATE.account.ziesha) {
+      if (tokenValue != "Ziesha" || BigInt(amount) <= STATE.account.ziesha) {
         let tx = STATE.sk.create_tx(
           nonce,
           to,
