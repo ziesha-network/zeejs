@@ -140,16 +140,12 @@ PrivateKey.prototype.create_tx = function (
 };
 
 var STATE = { sk: null, account: null };
-let NODE = "213.14.138.127:8765";
 let NETWORK = "pelmeni-6";
-let POOLS = [
-  "213.14.138.127:8765",
-  "117.62.66.67:8765",
-  "110.186.73.243:8765",
-  "89.179.68.98:8765",
-  "95.161.216.108:8765",
-  "93.157.251.188:8765",
-];
+
+function randomNode() {
+  let peers = Array.from(getPeers());
+  return peers[Math.floor(Math.random()*peers.length)];
+}
 
 async function fetchWithTimeout(resource, options = {}) {
   const { timeout = 2000 } = options;
@@ -166,7 +162,7 @@ async function fetchWithTimeout(resource, options = {}) {
 
 async function getAccount(pub_key) {
   return fetch(
-    "http://" + NODE + "/mpn/account?index=" + pub_key.mpn_account_index(),
+    "http://" + randomNode() + "/mpn/account?index=" + pub_key.mpn_account_index(),
     {
       method: "GET",
       headers: {
@@ -213,7 +209,7 @@ function parseTokenId(id) {
 }
 
 async function getToken(id) {
-  return fetch("http://" + NODE + "/token?token_id=" + id, {
+  return fetch("http://" + randomNode() + "/token?token_id=" + id, {
     method: "GET",
     headers: {
       "X-ZIESHA-NETWORK-NAME": NETWORK,
@@ -223,7 +219,17 @@ async function getToken(id) {
 }
 
 async function getMempool(addr) {
-  return fetch("http://" + NODE + "/mempool?mpn_address=" + addr, {
+  return fetch("http://" + randomNode() + "/mempool?mpn_address=" + addr, {
+    method: "GET",
+    headers: {
+      "X-ZIESHA-NETWORK-NAME": NETWORK,
+      Accept: "application/json",
+    },
+  }).then((response) => response.json());
+}
+
+async function fetchPeers(addr) {
+  return fetch("http://" + randomNode() + "/peers", {
     method: "GET",
     headers: {
       "X-ZIESHA-NETWORK-NAME": NETWORK,
@@ -234,9 +240,10 @@ async function getMempool(addr) {
 
 async function sendTx(tx) {
   var tasks = [];
-  for (i in POOLS) {
+  let peers = getPeers();
+  for (i in peers) {
     tasks.push(
-      fetchWithTimeout("http://" + POOLS[i] + "/transact/zero", {
+      fetchWithTimeout("http://" + peers[i] + "/transact/zero", {
         method: "POST",
         headers: {
           "X-ZIESHA-NETWORK-NAME": NETWORK,
@@ -460,6 +467,10 @@ async function load() {
     try {
       STATE.sk = new PrivateKey(toSeed(mnemonic));
       STATE.account = new Account((await getAccount(STATE.sk.pub_key)).account);
+      let peers = (await fetchPeers()).peers;
+      for(i in peers) {
+        addPeer(peers[i]);
+      }
       STATE.token_info = { Ziesha: { name: "Ziesha", symbol: "ℤ" } };
       for (tkn in STATE.account.tokens) {
         STATE.token_info[tkn] = (await getToken(tkn))["token"];
@@ -505,6 +516,26 @@ function showSeed(event) {
       mnemonic +
       "</b>"
   );
+}
+
+function getPeers() {
+  let val = localStorage.getItem("peers");
+  if (val === null) {
+    return new Set(["65.108.193.133:8765"]);
+  } else {
+    return new Set(JSON.parse(val));
+  }
+}
+
+function addPeer(peer) {
+  let peers = getPeers();
+  peers.add(peer);
+  var peerList = Array.from(peers);
+  peerList.sort(() => 0.5 - Math.random());
+  if(peerList.length > 8) {
+    peerList = peerList.slice(0, 8);
+  }
+  localStorage.setItem("peers", JSON.stringify(peerList));
 }
 
 function getHistory(pub_key) {
