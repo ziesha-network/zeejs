@@ -5,16 +5,16 @@ function PublicKey(point) {
 PublicKey.prototype.toString = function () {
   let is_odd = this.point.y.value % BigInt(2) == 1;
   let hex = this.point.x.value.toString(16);
-  let addr = "z" + (is_odd ? "3" : "2") + "0".repeat(64 - hex.length) + hex;
+  let addr = "jub" + (is_odd ? "3" : "2") + "0".repeat(64 - hex.length) + hex;
   return addr;
 };
 
 PublicKey.fromString = function (s) {
-  if (s.length != 66 || s[0] != "z" || (s[1] != "2" && s[1] != "3")) {
+  if (s.length != 68 || s.startsWith("jub") || (s[3] != "2" && s[3] != "3")) {
     throw Error("Invalid mpn address!");
   }
-  let is_odd = s[1] == "3";
-  let x = new Field("0x" + s.slice(2));
+  let is_odd = s[3] == "3";
+  let x = new Field("0x" + s.slice(4));
   var y = new Field(1)
     .sub(D.mul(x.mul(x)))
     .invert()
