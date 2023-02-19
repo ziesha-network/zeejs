@@ -10,7 +10,7 @@ PublicKey.prototype.toString = function () {
 };
 
 PublicKey.fromString = function (s) {
-  if (s.length != 68 || s.startsWith("jub") || (s[3] != "2" && s[3] != "3")) {
+  if (s.length != 68 || !s.startsWith("jub") || (s[3] != "2" && s[3] != "3")) {
     throw Error("Invalid mpn address!");
   }
   let is_odd = s[3] == "3";
@@ -362,6 +362,8 @@ function render() {
           if (incomings[i]["amount_token_id"] == "Ziesha") {
             amnt = amnt / 1000000000;
             tkn = "ℤ";
+          } else if(incomings[i]["amount_token_id"] in STATE.token_info) {
+            tkn = " " + STATE.token_info[incomings[i]["amount_token_id"]].symbol;
           }
 
           html +=
@@ -384,6 +386,8 @@ function render() {
           if (outgoings[i]["amount_token_id"] == "Ziesha") {
             amnt = amnt / 1000000000;
             tkn = "ℤ";
+          } else if(outgoings[i]["amount_token_id"] in STATE.token_info) {
+            tkn = " " + STATE.token_info[outgoings[i]["amount_token_id"]].symbol;
           }
 
           html +=
