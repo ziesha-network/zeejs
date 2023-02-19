@@ -110,11 +110,15 @@ PrivateKey.prototype.create_tx = function (
   srcTokenIndex,
   dstTokenIndex
 ) {
+  var tokenIdBigInt = BigInt(1);
+  if(tokenId != "Ziesha") {
+    tokenIdBigInt = BigInt(tokenId);
+  }
   let tx_hash = poseidon7(
     new Field(nonce),
     to.point.x,
     to.point.y,
-    new Field(BigInt(tokenId)),
+    new Field(tokenIdBigInt),
     new Field(amount),
     new Field(1),
     new Field(fee)
@@ -137,7 +141,7 @@ PrivateKey.prototype.create_tx = function (
 
 var STATE = { sk: null, account: null };
 let NODE = "213.14.138.127:8765";
-let NETWORK = "pelmeni-6";
+let NETWORK = "pelmeni-7";
 let POOLS = [
   "213.14.138.127:8765",
   "117.62.66.67:8765",
@@ -274,7 +278,11 @@ function render() {
         '<p style="text-align:center"><b>Address:</b><br>' +
         STATE.sk.pub_key +
         "</p>";
-      var balance = (STATE.account.ziesha / 1000000000).toString();
+      html +=
+        '<p style="text-align:center"><b>Nonce:</b> ' +
+        STATE.account.nonce +
+        "</p>";
+      var balance = (Number(STATE.account.ziesha) / 1000000000).toString();
       if (!balance.includes(".")) {
         balance += ".0";
       }
@@ -286,7 +294,7 @@ function render() {
       tokens["Ziesha"] = balance + "ℤ";
 
       html +=
-        '<p style="text-align:center"><b>Balance:</b><br>' +
+        '<p style="text-align:center"><b>Balance:</b> ' +
         balance +
         "<b>ℤ</b> <span style='font-size: 0.8em'>(<a onclick='load()'>Refresh...</a>)</span></p>";
     }
@@ -337,9 +345,12 @@ function render() {
           '<div style="text-align:center"><button onclick="resendPendings(event)">Resend pendings</button>';
       }
       var incomings = [];
+      var outgoings = [];
       for (i in STATE.mempool["updates"]) {
         if (STATE.mempool["updates"][i]["dst_pub_key"] == STATE.sk.pub_key) {
           incomings.push(STATE.mempool["updates"][i]);
+        } else if (STATE.mempool["updates"][i]["src_pub_key"] == STATE.sk.pub_key) {
+          outgoings.push(STATE.mempool["updates"][i]);
         }
       }
       if (incomings.length > 0) {
@@ -364,6 +375,28 @@ function render() {
         }
         html += "</p>";
       }
+      if (outgoings.length > 0) {
+        html +=
+          '<p style="text-align:center;font-size:0.9em"><b>Outgoing transactions:</b><br>';
+        for (i in outgoings) {
+          var amnt = outgoings[i]["amount"];
+          var tkn = "(Unknown token)";
+          if (outgoings[i]["amount_token_id"] == "Ziesha") {
+            amnt = amnt / 1000000000;
+            tkn = "ℤ";
+          }
+
+          html +=
+            "Sending " +
+            amnt +
+            tkn +
+            " " +
+            " To " +
+            outgoings[i]["dst_pub_key"] + " <i>(Nonce: " + outgoings[i]["nonce"] + ")</i>" +
+            "<br>";
+        }
+        html += "</p>";
+      }
     }
     document.getElementById("content").innerHTML = html;
     /*if (STATE.account !== null) {
@@ -381,9 +414,9 @@ function render() {
 function Account(acc) {
   this.nonce = acc.nonce;
   if (0 in acc.tokens && acc.tokens[0].token_id == "Ziesha") {
-    this.ziesha = acc.tokens[0].amount;
+    this.ziesha = BigInt(acc.tokens[0].amount);
   } else {
-    this.ziesha = 0;
+    this.ziesha = BigInt(0);
   }
   this.tokens = {};
   this.token_to_index = {};
@@ -540,7 +573,7 @@ async function send(event) {
         Number(amountValue) * (tokenValue == "Ziesha" ? 1000000000 : 1)
       );
       let dstAcc = new Account((await getAccount(to)).account);
-      if (tokenValue != "Ziesha" || amount <= STATE.account.ziesha) {
+      if (tokenValue != "Ziesha" || BigInt(amount) <= STATE.account.ziesha) {
         let tx = STATE.sk.create_tx(
           nonce,
           to,
