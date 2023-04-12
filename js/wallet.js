@@ -135,7 +135,7 @@ PrivateKey.prototype.create_tx = function (
 };
 
 var STATE = { sk: null, account: null };
-let NODE = "31.210.53.186:8765";
+let NODE = "api.ziesha.network:9766";
 let NETWORK = "tahdig";
 let POOLS = [
   NODE
@@ -156,7 +156,7 @@ async function fetchWithTimeout(resource, options = {}) {
 
 async function getAccount(pub_key) {
   return fetch(
-    "http://" + NODE + "/mpn/account?address=" + pub_key,
+    "https://" + NODE + "/mpn/account?address=" + pub_key,
     {
       method: "GET",
       headers: {
@@ -203,7 +203,7 @@ function parseTokenId(id) {
 }
 
 async function getToken(id) {
-  return fetch("http://" + NODE + "/token?token_id=" + id, {
+  return fetch("https://" + NODE + "/token?token_id=" + id, {
     method: "GET",
     headers: {
       "X-ZIESHA-NETWORK-NAME": NETWORK,
@@ -213,7 +213,7 @@ async function getToken(id) {
 }
 
 async function getMempool(addr) {
-  return fetch("http://" + NODE + "/mempool?mpn_address=" + addr, {
+  return fetch("https://" + NODE + "/mempool?mpn_address=" + addr, {
     method: "GET",
     headers: {
       "X-ZIESHA-NETWORK-NAME": NETWORK,
@@ -226,7 +226,7 @@ async function sendTx(tx) {
   var tasks = [];
   for (i in POOLS) {
     tasks.push(
-      fetchWithTimeout("http://" + POOLS[i] + "/transact/zero", {
+      fetchWithTimeout("https://" + POOLS[i] + "/transact/zero", {
         method: "POST",
         headers: {
           "X-ZIESHA-NETWORK-NAME": NETWORK,
