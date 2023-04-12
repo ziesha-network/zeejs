@@ -107,8 +107,6 @@ PrivateKey.prototype.create_tx = function (
   amount,
   fee,
   tokenId,
-  srcTokenIndex,
-  dstTokenIndex
 ) {
   var tokenIdBigInt = BigInt(1);
   if(tokenId != "Ziesha") {
@@ -128,9 +126,6 @@ PrivateKey.prototype.create_tx = function (
     nonce: nonce,
     src_pub_key: this.pub_key.toString(),
     dst_pub_key: to.toString(),
-    src_token_index: srcTokenIndex,
-    src_fee_token_index: 0,
-    dst_token_index: dstTokenIndex,
     amount_token_id: tokenId,
     fee_token_id: "Ziesha",
     amount: amount,
@@ -140,15 +135,9 @@ PrivateKey.prototype.create_tx = function (
 };
 
 var STATE = { sk: null, account: null };
-let NODE = "213.14.138.127:8765";
-let NETWORK = "pelmeni-7";
+let NODE = "31.210.53.186:8765";
+let NETWORK = "tahdig";
 let POOLS = [
-  "213.14.138.127:8765",
-  "117.62.66.67:8765",
-  "110.186.73.243:8765",
-  "89.179.68.98:8765",
-  "95.161.216.108:8765",
-  "93.157.251.188:8765",
 ];
 
 async function fetchWithTimeout(resource, options = {}) {
@@ -166,7 +155,7 @@ async function fetchWithTimeout(resource, options = {}) {
 
 async function getAccount(pub_key) {
   return fetch(
-    "http://" + NODE + "/mpn/account?index=" + pub_key.mpn_account_index(),
+    "http://" + NODE + "/mpn/account?address=" + pub_key,
     {
       method: "GET",
       headers: {
@@ -277,10 +266,6 @@ function render() {
       html +=
         '<p style="text-align:center"><b>Address:</b><br>' +
         STATE.sk.pub_key +
-        "</p>";
-      html +=
-        '<p style="text-align:center"><b>Nonce:</b> ' +
-        STATE.account.nonce +
         "</p>";
       var balance = (Number(STATE.account.ziesha) / 1000000000).toString();
       if (!balance.includes(".")) {
@@ -416,7 +401,7 @@ function render() {
 }
 
 function Account(acc) {
-  this.nonce = acc.nonce;
+  this.nonce = acc.tx_nonce;
   if (0 in acc.tokens && acc.tokens[0].token_id == "Ziesha") {
     this.ziesha = BigInt(acc.tokens[0].amount);
   } else {
@@ -434,25 +419,6 @@ function Account(acc) {
     }
   }
 }
-
-Account.prototype.findTokenIndex = function (tknId, allowEmpty) {
-  if (tknId == "Ziesha") {
-    return 0;
-  }
-  if (tknId in this.token_to_index) {
-    return this.token_to_index[tknId];
-  } else {
-    if (allowEmpty) {
-      for (i = 1; i < 64; i++) {
-        if (this.index_to_token[i] === undefined) {
-          return i;
-        }
-      }
-    } else {
-      throw Error("Token not found!");
-    }
-  }
-};
 
 async function load() {
   let mnemonic = localStorage.getItem("mnemonic");
@@ -583,9 +549,7 @@ async function send(event) {
           to,
           amount,
           0,
-          tokenValue,
-          STATE.account.findTokenIndex(tokenValue, false),
-          dstAcc.findTokenIndex(tokenValue, true)
+          tokenValue
         );
         STATE.tx_to_send = tx;
         document.getElementById("modal").innerHTML =
