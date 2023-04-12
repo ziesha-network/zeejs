@@ -138,6 +138,7 @@ var STATE = { sk: null, account: null };
 let NODE = "31.210.53.186:8765";
 let NETWORK = "tahdig";
 let POOLS = [
+  NODE
 ];
 
 async function fetchWithTimeout(resource, options = {}) {
