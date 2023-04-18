@@ -136,7 +136,7 @@ PrivateKey.prototype.create_tx = function (
 
 var STATE = { sk: null, account: null };
 let NODE = "api.ziesha.network:9766";
-let NETWORK = "tahdig";
+let NETWORK = "doner-kebab";
 let POOLS = [
   NODE
 ];
@@ -519,7 +519,7 @@ async function acceptSendTx(event) {
 
 async function send(event) {
   event.preventDefault();
-  let nonce = STATE.account.nonce;
+  let nonce = STATE.account.nonce + 1;
   let hist = getHistory(STATE.sk.pub_key);
   for (i in hist) {
     if (hist[i]["nonce"] >= nonce) {
