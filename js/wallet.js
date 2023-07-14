@@ -136,7 +136,7 @@ PrivateKey.prototype.create_tx = function (
 
 var STATE = { sk: null, account: null };
 let NODE = "api.ziesha.network:9766";
-let NETWORK = "deruny-4";
+let NETWORK = "deruny-5";
 let POOLS = [
   NODE
 ];
